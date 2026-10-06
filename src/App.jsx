@@ -1,5 +1,6 @@
-import { useEffect, useMemo, useState } from "react";
-import { onAuthStateChanged, getIdToken } from "firebase/auth";
+import { useEffect, useState } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { getIdToken } from "firebase/auth";
 import { auth } from "./firebase";
 import { loginUser, registerUser, logoutUser } from "./auth";
 import { getUserProfile } from "./firestore";
@@ -9,14 +10,16 @@ const money = (n) =>
 
 const Icon = ({ n }) => (
   <span className="ico">
-    {({
-      grid: "⌘",
-      phone: "▯",
-      wallet: "▱",
-      clock: "◷",
-      info: "i",
-      logout: "↪",
-    })[n] || "•"}
+    {(
+      {
+        grid: "⌘",
+        phone: "▯",
+        wallet: "▱",
+        clock: "◷",
+        info: "i",
+        logout: "↪",
+      }[n] || "•"
+    )}
   </span>
 );
 
@@ -44,8 +47,8 @@ function Auth() {
       } else {
         await loginUser(email, password);
       }
-    } catch (x) {
-      setMsg(x.message || "Terjadi kesalahan.");
+    } catch (error) {
+      setMsg(error.message || "Terjadi kesalahan.");
     }
   }
 
@@ -65,8 +68,8 @@ function Auth() {
         </h1>
 
         <p>
-          Kelola saldo, nomor virtual, dan pesanan dari
-          satu panel.
+          Kelola saldo, nomor virtual, dan pesanan
+          dari satu panel.
         </p>
 
         <form onSubmit={submit}>
@@ -102,7 +105,7 @@ function Auth() {
             />
           </label>
 
-          <button className="primary">
+          <button className="primary" type="submit">
             {mode === "login" ? "Masuk" : "Daftar"}
             <span>→</span>
           </button>
@@ -114,7 +117,9 @@ function Auth() {
           className="link"
           onClick={() =>
             setMode(
-              mode === "login" ? "register" : "login"
+              mode === "login"
+                ? "register"
+                : "login"
             )
           }
         >
@@ -131,11 +136,9 @@ function Product({ p, onClick }) {
   const name =
     p.service_name ||
     p.name ||
-    p.serviceName ||
-    p.title ||
     "Service";
 
-  const active = p.active !== false;
+  const active = p.active === true;
 
   return (
     <article className="product">
@@ -146,7 +149,7 @@ function Product({ p, onClick }) {
         </span>
 
         <small>
-          Service ID: {p.service_id ?? "-"}
+          ID {p.service_id ?? "-"}
         </small>
       </div>
 
@@ -154,13 +157,11 @@ function Product({ p, onClick }) {
 
       <p>
         {p.service_code ||
-          "Layanan nomor virtual dari Nomera."}
+          "Layanan nomor virtual"}
       </p>
 
       <div className="row">
-        <strong>
-          Pilih layanan
-        </strong>
+        <strong>Tersedia</strong>
 
         <button onClick={onClick}>
           Pilih →
@@ -171,20 +172,20 @@ function Product({ p, onClick }) {
 }
 
 export default function App() {
-  const [depositData, setDepositData] = useState(null);
-  const [depositLoading, setDepositLoading] = useState(false);
-
   const [user, setUser] = useState(null);
   const [profile, setProfile] = useState(null);
 
-  const [products, setProducts] = useState([]);
+  const [services, setServices] = useState([]);
 
   const [page, setPage] = useState("home");
-  const [amount, setAmount] = useState("");
   const [selected, setSelected] = useState(null);
+
+  const [amount, setAmount] = useState("");
+  const [depositData, setDepositData] = useState(null);
 
   const [loading, setLoading] = useState(true);
   const [catalogLoading, setCatalogLoading] = useState(false);
+  const [depositLoading, setDepositLoading] = useState(false);
   const [catalogError, setCatalogError] = useState("");
 
   async function loadCatalog() {
@@ -212,29 +213,41 @@ export default function App() {
       }
 
       /*
-       * Respons Nomera:
-       * {
-       *   success: true,
-       *   products: [],
-       *   services: [...]
-       * }
-       */
+        Respons Nomera:
 
-      const items = Array.isArray(data?.services)
+        {
+          success: true,
+          products: [],
+          services: [
+            {
+              service_id: 1,
+              service_code: "whatsapp",
+              service_name: "WhatsApp",
+              logo_url: "",
+              active: true
+            }
+          ]
+        }
+      */
+
+      const list = Array.isArray(data?.services)
         ? data.services
         : [];
 
-      setProducts(items);
+      setServices(list);
 
-      if (!items.length) {
+      if (!list.length) {
         setCatalogError(
-          "Tidak ada service yang tersedia dari Nomera."
+          "Tidak ada layanan dari Nomera."
         );
       }
     } catch (error) {
-      console.error("Nomera catalog:", error);
+      console.error(
+        "Nomera catalog error:",
+        error
+      );
 
-      setProducts([]);
+      setServices([]);
 
       setCatalogError(
         error.message ||
@@ -246,37 +259,36 @@ export default function App() {
   }
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      async (u) => {
-        try {
-          setUser(u);
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        async (currentUser) => {
+          try {
+            setUser(currentUser);
 
-          if (u) {
-            const p = await getUserProfile(u.uid);
+            if (currentUser) {
+              const userProfile =
+                await getUserProfile(
+                  currentUser.uid
+                );
 
-            setProfile(p);
+              setProfile(userProfile);
 
-            await loadCatalog();
-          } else {
-            setProfile(null);
-            setProducts([]);
+              await loadCatalog();
+            } else {
+              setProfile(null);
+              setServices([]);
+            }
+          } catch (error) {
+            console.error(error);
+          } finally {
+            setLoading(false);
           }
-        } catch (error) {
-          console.error(error);
-        } finally {
-          setLoading(false);
         }
-      }
-    );
+      );
 
     return () => unsubscribe();
   }, []);
-
-  const stock = useMemo(
-    () => products.length,
-    [products]
-  );
 
   if (loading) {
     return (
@@ -311,13 +323,13 @@ export default function App() {
         <nav>
           {nav.map(([id, title, icon]) => (
             <button
+              key={id}
               className={
                 page === id
                   ? "nav active"
                   : "nav"
               }
               onClick={() => setPage(id)}
-              key={id}
             >
               <Icon n={icon} />
               {title}
@@ -334,7 +346,9 @@ export default function App() {
             </b>
 
             <button
-              onClick={() => setPage("deposit")}
+              onClick={() =>
+                setPage("deposit")
+              }
             >
               Isi saldo +
             </button>
@@ -358,17 +372,22 @@ export default function App() {
             </span>
 
             <h2>
-              {nav.find(
-                (x) => x[0] === page
-              )?.[1]}
+              {
+                nav.find(
+                  (item) =>
+                    item[0] === page
+                )?.[1]
+              }
             </h2>
           </div>
 
           <div className="account">
-            {profile?.name || user.email}
+            {profile?.name ||
+              user.email}
 
             <b>
-              {profile?.role || "pembeli"}
+              {profile?.role ||
+                "pembeli"}
             </b>
           </div>
         </header>
@@ -388,9 +407,9 @@ export default function App() {
                 </h1>
 
                 <p>
-                  Pilih layanan, siapkan saldo, dan
-                  kelola pesanan dari dashboard
-                  SULFA MEDIA STORE.
+                  Pilih layanan, siapkan saldo,
+                  dan kelola pesanan dari
+                  dashboard SULFA MEDIA STORE.
                 </p>
 
                 <div className="actions">
@@ -400,7 +419,7 @@ export default function App() {
                       setPage("products")
                     }
                   >
-                    Lihat nomor →
+                    Lihat layanan →
                   </button>
 
                   <button
@@ -430,19 +449,24 @@ export default function App() {
               <div>
                 Layanan
                 <strong>
-                  {products.length}
+                  {services.length}
                 </strong>
               </div>
 
               <div>
-                Tersedia
-                <strong>{stock}</strong>
+                Status
+                <strong>
+                  {services.length
+                    ? "READY"
+                    : "EMPTY"}
+                </strong>
               </div>
 
               <div>
                 Pembelian
                 <strong>
-                  {profile?.purchaseCount || 0}
+                  {profile?.purchaseCount ||
+                    0}
                 </strong>
               </div>
             </div>
@@ -463,24 +487,24 @@ export default function App() {
               )}
 
               {!catalogLoading &&
-                products
+                services
                   .slice(0, 3)
-                  .map((p, index) => (
+                  .map((service) => (
                     <Product
                       key={
-                        p.service_id || index
+                        service.service_id
                       }
-                      p={p}
+                      p={service}
                       onClick={() =>
-                        setSelected(p)
+                        setSelected(service)
                       }
                     />
                   ))}
 
               {!catalogLoading &&
-                !products.length && (
+                !services.length && (
                   <div className="emptybox">
-                    Belum ada layanan tersedia.
+                    Tidak ada layanan tersedia.
                   </div>
                 )}
             </div>
@@ -495,12 +519,13 @@ export default function App() {
               </span>
 
               <h1>
-                Pilih layanan yang kamu butuhkan.
+                Pilih layanan yang kamu
+                butuhkan.
               </h1>
 
               <p>
-                Data layanan diambil langsung dari
-                API Nomera.
+                Data layanan diambil langsung
+                dari API Nomera.
               </p>
             </div>
 
@@ -530,22 +555,23 @@ export default function App() {
               )}
 
               {!catalogLoading &&
-                products.map((p, index) => (
+                services.map((service) => (
                   <Product
                     key={
-                      p.service_id || index
+                      service.service_id
                     }
-                    p={p}
+                    p={service}
                     onClick={() =>
-                      setSelected(p)
+                      setSelected(service)
                     }
                   />
                 ))}
 
               {!catalogLoading &&
-                !products.length && (
+                !services.length && (
                   <div className="emptybox">
-                    Tidak ada layanan dari Nomera.
+                    Tidak ada layanan dari
+                    Nomera.
                   </div>
                 )}
             </div>
@@ -562,8 +588,9 @@ export default function App() {
               <h1>Isi saldo</h1>
 
               <p>
-                Masukkan nominal deposit. Pembayaran
-                dibuat melalui backend.
+                Masukkan nominal deposit.
+                Pembayaran dibuat melalui
+                backend.
               </p>
 
               <div className="big">
@@ -579,7 +606,9 @@ export default function App() {
                   step="1000"
                   value={amount}
                   onChange={(e) =>
-                    setAmount(e.target.value)
+                    setAmount(
+                      e.target.value
+                    )
                   }
                   placeholder="Minimal Rp 5.000"
                 />
@@ -587,14 +616,14 @@ export default function App() {
 
               <div className="quick">
                 {[5000, 10000, 25000, 50000].map(
-                  (v) => (
+                  (value) => (
                     <button
-                      key={v}
+                      key={value}
                       onClick={() =>
-                        setAmount(v)
+                        setAmount(value)
                       }
                     >
-                      {money(v)}
+                      {money(value)}
                     </button>
                   )
                 )}
@@ -611,39 +640,50 @@ export default function App() {
 
                   try {
                     const token =
-                      await getIdToken(user);
+                      await getIdToken(
+                        user
+                      );
 
-                    const r = await fetch(
-                      "/api/deposit/create",
-                      {
-                        method: "POST",
-                        headers: {
-                          "Content-Type":
-                            "application/json",
-                          Authorization:
-                            `Bearer ${token}`,
-                        },
-                        body: JSON.stringify({
-                          amount:
-                            Number(amount),
-                        }),
-                      }
-                    );
+                    const response =
+                      await fetch(
+                        "/api/deposit/create",
+                        {
+                          method: "POST",
+                          headers: {
+                            "Content-Type":
+                              "application/json",
+                            Authorization:
+                              `Bearer ${token}`,
+                          },
+                          body:
+                            JSON.stringify({
+                              amount:
+                                Number(
+                                  amount
+                                ),
+                            }),
+                        }
+                      );
 
-                    const d = await r.json();
+                    const data =
+                      await response.json();
 
-                    if (!r.ok) {
+                    if (!response.ok) {
                       throw new Error(
-                        d.error ||
-                          "Gagal membuat deposit"
+                        data.error ||
+                          "Gagal membuat deposit."
                       );
                     }
 
-                    setDepositData(d);
-                  } catch (e) {
-                    alert(e.message);
+                    setDepositData(data);
+                  } catch (error) {
+                    alert(
+                      error.message
+                    );
                   } finally {
-                    setDepositLoading(false);
+                    setDepositLoading(
+                      false
+                    );
                   }
                 }}
               >
@@ -653,12 +693,17 @@ export default function App() {
               </button>
 
               <div className="payment">
-                <b>PAYMENT GATEWAY</b>
+                <b>
+                  PAYMENT GATEWAY
+                </b>
 
                 <strong>
-                  {depositData?.data?.payment_url ||
-                  depositData?.data?.checkout_url ||
-                  depositData?.data?.invoice_url
+                  {depositData?.data
+                    ?.payment_url ||
+                  depositData?.data
+                    ?.checkout_url ||
+                  depositData?.data
+                    ?.invoice_url
                     ? "Pembayaran siap."
                     : "QRIS muncul setelah transaksi deposit dibuat."}
                 </strong>
@@ -687,8 +732,8 @@ export default function App() {
                 )}
 
                 <small>
-                  Secret key gateway tidak berada
-                  di browser.
+                  Secret key gateway tidak
+                  berada di browser.
                 </small>
               </div>
             </div>
@@ -698,16 +743,17 @@ export default function App() {
                 <b>01</b>
                 <h3>Buat deposit</h3>
                 <p>
-                  Transaksi dibuat sebagai pending.
+                  Transaksi dibuat sebagai
+                  pending.
                 </p>
               </div>
 
               <div>
                 <b>02</b>
-                <h3>Bayar QRIS</h3>
+                <h3>Bayar</h3>
                 <p>
-                  QR pembayaran dibuat oleh
-                  backend.
+                  Pembayaran diproses oleh
+                  gateway.
                 </p>
               </div>
 
@@ -715,8 +761,8 @@ export default function App() {
                 <b>03</b>
                 <h3>Saldo masuk</h3>
                 <p>
-                  Webhook terverifikasi mengkredit
-                  saldo sekali.
+                  Webhook terverifikasi
+                  mengkredit saldo.
                 </p>
               </div>
             </div>
@@ -725,8 +771,8 @@ export default function App() {
 
         {page === "orders" && (
           <div className="emptybox">
-            Riwayat pesanan akan tampil setelah
-            backend order terhubung.
+            Riwayat pesanan akan tampil
+            setelah backend order terhubung.
           </div>
         )}
 
@@ -748,34 +794,34 @@ export default function App() {
               ],
               [
                 "02",
-                "Validasi harga",
-                "Backend melakukan quote sebelum order.",
+                "Pilih penawaran",
+                "Pilih negara dan offer yang tersedia.",
               ],
               [
                 "03",
-                "Buat order",
-                "Order dibuat melalui backend.",
+                "Validasi harga",
+                "Harga dicek melalui quote provider.",
               ],
               [
                 "04",
-                "Tunggu status",
-                "Pesanan diproses oleh provider.",
+                "Buat pesanan",
+                "Pesanan dikirim melalui backend.",
               ],
               [
                 "05",
                 "Selesai",
-                "Order selesai setelah provider mengonfirmasi.",
+                "Status pesanan mengikuti provider.",
               ],
-            ].map((x) => (
+            ].map((item) => (
               <div
                 className="timeline"
-                key={x[0]}
+                key={item[0]}
               >
-                <b>{x[0]}</b>
+                <b>{item[0]}</b>
 
                 <div>
-                  <h3>{x[1]}</h3>
-                  <p>{x[2]}</p>
+                  <h3>{item[1]}</h3>
+                  <p>{item[2]}</p>
                 </div>
               </div>
             ))}
@@ -811,32 +857,32 @@ export default function App() {
 
             <h2>
               {selected.service_name ||
-                selected.name ||
                 "Service"}
             </h2>
 
             <p>
-              Code:{" "}
+              Kode service:{" "}
               <b>
-                {selected.service_code || "-"}
+                {selected.service_code ||
+                  "-"}
               </b>
             </p>
 
             <p>
               Service ID:{" "}
               <b>
-                {selected.service_id || "-"}
+                {selected.service_id ||
+                  "-"}
               </b>
             </p>
 
             <button
               className="primary wide"
-              onClick={() => {
-                setSelected(null);
-                setPage("deposit");
-              }}
+              onClick={() =>
+                setSelected(null)
+              }
             >
-              Isi saldo untuk melanjutkan →
+              Lanjut pilih negara →
             </button>
           </div>
         </div>
