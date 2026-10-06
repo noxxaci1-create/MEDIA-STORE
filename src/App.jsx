@@ -86,9 +86,9 @@ function ServiceLogo({ service }) {
   );
 }
 
-/* =========================================================
+/* =========================
    AUTH
-========================================================= */
+========================= */
 
 function Auth() {
   const [mode, setMode] = useState("login");
@@ -137,13 +137,10 @@ function Auth() {
           {mode === "register" && (
             <label>
               Nama
-
               <input
                 type="text"
                 value={name}
-                onChange={(e) =>
-                  setName(e.target.value)
-                }
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Nama kamu"
                 required
               />
@@ -152,13 +149,10 @@ function Auth() {
 
           <label>
             Email
-
             <input
               type="email"
               value={email}
-              onChange={(e) =>
-                setEmail(e.target.value)
-              }
+              onChange={(e) => setEmail(e.target.value)}
               placeholder="nama@email.com"
               required
             />
@@ -166,13 +160,10 @@ function Auth() {
 
           <label>
             Password
-
             <input
               type="password"
               value={password}
-              onChange={(e) =>
-                setPassword(e.target.value)
-              }
+              onChange={(e) => setPassword(e.target.value)}
               placeholder="Minimal 6 karakter"
               minLength="6"
               required
@@ -180,19 +171,12 @@ function Auth() {
           </label>
 
           <button className="primary" type="submit">
-            {mode === "login"
-              ? "Masuk"
-              : "Buat akun"}
-
+            {mode === "login" ? "Masuk" : "Buat akun"}
             <span>→</span>
           </button>
         </form>
 
-        {msg && (
-          <div className="alert">
-            {msg}
-          </div>
-        )}
+        {msg && <div className="alert">{msg}</div>}
 
         <button
           className="link"
@@ -213,9 +197,9 @@ function Auth() {
   );
 }
 
-/* =========================================================
-   PRODUCT CARD
-========================================================= */
+/* =========================
+   SERVICE CARD
+========================= */
 
 function Product({ p, onClick }) {
   const name =
@@ -232,9 +216,7 @@ function Product({ p, onClick }) {
 
         <span className={active ? "ready" : "empty"}>
           <i />
-          {active
-            ? "TERSEDIA"
-            : "SEDANG KOSONG"}
+          {active ? "TERSEDIA" : "SEDANG KOSONG"}
         </span>
       </div>
 
@@ -242,8 +224,7 @@ function Product({ p, onClick }) {
         <h3>{name}</h3>
 
         <p>
-          Nomor virtual Indonesia
-          untuk layanan {name}.
+          Nomor virtual untuk layanan {name}.
         </p>
       </div>
 
@@ -251,43 +232,32 @@ function Product({ p, onClick }) {
         <div>
           <small>Negara</small>
 
-          <strong>
-            🇮🇩 Indonesia
-          </strong>
+          <strong>🇮🇩 Indonesia</strong>
         </div>
 
         <button
           onClick={onClick}
           disabled={!active}
         >
-          {active
-            ? "Pilih →"
-            : "Tidak tersedia"}
+          {active ? "Pilih →" : "Tidak tersedia"}
         </button>
       </div>
     </article>
   );
 }
 
-/* =========================================================
-   SERVICE PRODUCTS
-========================================================= */
+/* =========================
+   SERVICE PRODUCTS MODAL
+========================= */
 
 function ServiceProductsModal({
   service,
   onClose,
 }) {
-  const [loading, setLoading] =
-    useState(true);
-
-  const [error, setError] =
-    useState("");
-
-  const [products, setProducts] =
-    useState([]);
-
-  const [selectedProduct, setSelectedProduct] =
-    useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [products, setProducts] = useState([]);
+  const [selectedProduct, setSelectedProduct] = useState(null);
 
   useEffect(() => {
     if (!service?.service_id) return;
@@ -303,14 +273,12 @@ function ServiceProductsModal({
           )}`,
           {
             headers: {
-              Accept:
-                "application/json",
+              Accept: "application/json",
             },
           }
         );
 
-        const data =
-          await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
           throw new Error(
@@ -320,17 +288,23 @@ function ServiceProductsModal({
         }
 
         /*
-         * Nomera dapat mengembalikan
-         * products dalam beberapa bentuk.
+         * RESPONSE NOMERA:
+         *
+         * {
+         *   success: true,
+         *   items: [...]
+         * }
          */
-        const list =
-          Array.isArray(data?.products)
-            ? data.products
-            : Array.isArray(data?.data)
-            ? data.data
-            : Array.isArray(data)
-            ? data
-            : [];
+
+        const list = Array.isArray(data?.items)
+          ? data.items
+          : Array.isArray(data?.products)
+          ? data.products
+          : Array.isArray(data?.data)
+          ? data.data
+          : Array.isArray(data)
+          ? data
+          : [];
 
         setProducts(list);
 
@@ -354,37 +328,6 @@ function ServiceProductsModal({
     load();
   }, [service]);
 
-  function getCountry(product) {
-    return (
-      product.country_name ||
-      product.countryName ||
-      product.country ||
-      product.country_code ||
-      product.countryCode ||
-      "Indonesia"
-    );
-  }
-
-  function getPrice(product) {
-    return (
-      product.price ??
-      product.sell_price ??
-      product.selling_price ??
-      product.amount ??
-      product.cost ??
-      0
-    );
-  }
-
-  function getStock(product) {
-    return (
-      product.stock ??
-      product.available ??
-      product.quantity ??
-      null
-    );
-  }
-
   return (
     <div
       className="modal-bg"
@@ -392,9 +335,7 @@ function ServiceProductsModal({
     >
       <div
         className="modal service-products-modal"
-        onClick={(e) =>
-          e.stopPropagation()
-        }
+        onClick={(e) => e.stopPropagation()}
       >
         <button
           className="close"
@@ -409,19 +350,16 @@ function ServiceProductsModal({
           PILIHAN LAYANAN
         </span>
 
-        <h2>
-          {service.service_name}
-        </h2>
+        <h2>{service.service_name}</h2>
 
         <p>
-          Pilih pilihan yang tersedia
-          untuk melanjutkan.
+          Pilih negara dan paket
+          yang tersedia.
         </p>
 
         {loading && (
           <div className="products-loading">
             <div className="spin" />
-
             <span>
               Menyiapkan pilihan...
             </span>
@@ -441,29 +379,33 @@ function ServiceProductsModal({
               {products.map(
                 (product, index) => {
                   const country =
-                    getCountry(product);
+                    product.display_name ||
+                    product.country_name ||
+                    "Indonesia";
 
                   const price =
-                    getPrice(product);
+                    product.price || 0;
 
-                  const stock =
-                    getStock(product);
+                  const available =
+                    product.available ?? 0;
 
-                  const isSelected =
+                  const packageLabel =
+                    product.package_label ||
+                    "Paket";
+
+                  const selected =
                     selectedProduct ===
                     product;
 
                   return (
                     <button
                       key={
-                        product.id ||
-                        product.product_id ||
-                        product.offerKey ||
                         product.offer_key ||
+                        product.offerKey ||
                         index
                       }
                       className={
-                        isSelected
+                        selected
                           ? "service-product selected"
                           : "service-product"
                       }
@@ -475,7 +417,40 @@ function ServiceProductsModal({
                     >
                       <div className="service-product-left">
                         <div className="country-icon">
-                          🇮🇩
+                          {product.country_code ===
+                          "ID"
+                            ? "🇮🇩"
+                            : product.country_code ===
+                              "US"
+                            ? "🇺🇸"
+                            : product.country_code ===
+                              "MY"
+                            ? "🇲🇾"
+                            : product.country_code ===
+                              "PH"
+                            ? "🇵🇭"
+                            : product.country_code ===
+                              "GB"
+                            ? "🇬🇧"
+                            : product.country_code ===
+                              "CA"
+                            ? "🇨🇦"
+                            : product.country_code ===
+                              "SG"
+                            ? "🇸🇬"
+                            : product.country_code ===
+                              "TH"
+                            ? "🇹🇭"
+                            : product.country_code ===
+                              "VN"
+                            ? "🇻🇳"
+                            : product.country_code ===
+                              "IN"
+                            ? "🇮🇳"
+                            : product.country_code ===
+                              "JP"
+                            ? "🇯🇵"
+                            : "🌐"}
                         </div>
 
                         <div>
@@ -484,9 +459,14 @@ function ServiceProductsModal({
                           </strong>
 
                           <small>
-                            {stock !== null
-                              ? `Tersedia ${stock}`
-                              : "Tersedia"}
+                            {packageLabel}
+                            {" • "}
+                            Tersedia{" "}
+                            {Number(
+                              available
+                            ).toLocaleString(
+                              "id-ID"
+                            )}
                           </small>
                         </div>
                       </div>
@@ -497,7 +477,7 @@ function ServiceProductsModal({
                         </strong>
 
                         <span>
-                          {isSelected
+                          {selected
                             ? "✓"
                             : "›"}
                         </span>
@@ -512,22 +492,21 @@ function ServiceProductsModal({
         {selectedProduct && (
           <div className="selected-product">
             <div>
-              <small>
-                PILIHAN KAMU
-              </small>
+              <small>PILIHAN KAMU</small>
 
               <strong>
-                {getCountry(
-                  selectedProduct
-                )}
+                {selectedProduct.display_name ||
+                  selectedProduct.country_name}
               </strong>
+
+              <small>
+                {selectedProduct.package_label}
+              </small>
             </div>
 
             <strong>
               {money(
-                getPrice(
-                  selectedProduct
-                )
+                selectedProduct.price
               )}
             </strong>
           </div>
@@ -537,41 +516,23 @@ function ServiceProductsModal({
   );
 }
 
-/* =========================================================
+/* =========================
    APP
-========================================================= */
+========================= */
 
 export default function App() {
-  const [user, setUser] =
-    useState(null);
-
-  const [profile, setProfile] =
-    useState(null);
-
-  const [services, setServices] =
-    useState([]);
-
-  const [page, setPage] =
-    useState("home");
-
-  const [selected, setSelected] =
-    useState(null);
-
-  const [amount, setAmount] =
-    useState("");
-
-  const [depositData, setDepositData] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
+  const [user, setUser] = useState(null);
+  const [profile, setProfile] = useState(null);
+  const [services, setServices] = useState([]);
+  const [page, setPage] = useState("home");
+  const [selected, setSelected] = useState(null);
+  const [amount, setAmount] = useState("");
+  const [depositData, setDepositData] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [catalogLoading, setCatalogLoading] =
     useState(false);
-
   const [depositLoading, setDepositLoading] =
     useState(false);
-
   const [catalogError, setCatalogError] =
     useState("");
 
@@ -580,19 +541,16 @@ export default function App() {
     setCatalogError("");
 
     try {
-      const response =
-        await fetch(
-          "/api/nomera/catalog",
-          {
-            headers: {
-              Accept:
-                "application/json",
-            },
-          }
-        );
+      const response = await fetch(
+        "/api/nomera/catalog",
+        {
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
 
-      const data =
-        await response.json();
+      const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -601,10 +559,11 @@ export default function App() {
         );
       }
 
-      const list =
-        Array.isArray(data?.services)
-          ? data.services
-          : [];
+      const list = Array.isArray(
+        data?.services
+      )
+        ? data.services
+        : [];
 
       setServices(list);
 
@@ -711,9 +670,7 @@ export default function App() {
 
         <div className="side">
           <div className="balance">
-            <small>
-              Saldo kamu
-            </small>
+            <small>Saldo kamu</small>
 
             <b>
               {money(
@@ -770,7 +727,7 @@ export default function App() {
           </div>
         </header>
 
-        {/* HOME */}
+        {/* BERANDA */}
 
         {page === "home" && (
           <>
@@ -799,9 +756,7 @@ export default function App() {
                   <button
                     className="primary"
                     onClick={() =>
-                      setPage(
-                        "products"
-                      )
+                      setPage("products")
                     }
                   >
                     Lihat nomor →
@@ -810,9 +765,7 @@ export default function App() {
                   <button
                     className="secondary"
                     onClick={() =>
-                      setPage(
-                        "deposit"
-                      )
+                      setPage("deposit")
                     }
                   >
                     Isi saldo
@@ -901,7 +854,7 @@ export default function App() {
           </>
         )}
 
-        {/* PRODUCTS */}
+        {/* NOMOR */}
 
         {page === "products" && (
           <>
@@ -978,7 +931,7 @@ export default function App() {
           </>
         )}
 
-        {/* DEPOSIT */}
+        {/* SALDO */}
 
         {page === "deposit" && (
           <section className="deposit">
@@ -1056,8 +1009,7 @@ export default function App() {
                       await fetch(
                         "/api/deposit/create",
                         {
-                          method:
-                            "POST",
+                          method: "POST",
                           headers: {
                             "Content-Type":
                               "application/json",
@@ -1115,14 +1067,12 @@ export default function App() {
                     menambahkan saldo.
                   </strong>
 
-                  {(
-                    depositData?.data
-                      ?.payment_url ||
+                  {(depositData?.data
+                    ?.payment_url ||
                     depositData?.data
                       ?.checkout_url ||
                     depositData?.data
-                      ?.invoice_url
-                  ) && (
+                      ?.invoice_url) && (
                     <a
                       className="primary wide"
                       href={
@@ -1191,7 +1141,7 @@ export default function App() {
           </section>
         )}
 
-        {/* ORDERS */}
+        {/* PESANAN */}
 
         {page === "orders" && (
           <section className="intro">
@@ -1214,7 +1164,7 @@ export default function App() {
           </section>
         )}
 
-        {/* INFO */}
+        {/* BANTUAN */}
 
         {page === "info" && (
           <section className="intro">
@@ -1241,7 +1191,7 @@ export default function App() {
               [
                 "02",
                 "Pilih pilihan",
-                "Pilih pilihan yang tersedia.",
+                "Pilih negara dan paket yang tersedia.",
               ],
               [
                 "03",
@@ -1264,18 +1214,12 @@ export default function App() {
                   className="timeline"
                   key={number}
                 >
-                  <b>
-                    {number}
-                  </b>
+                  <b>{number}</b>
 
                   <div>
-                    <h3>
-                      {title}
-                    </h3>
+                    <h3>{title}</h3>
 
-                    <p>
-                      {text}
-                    </p>
+                    <p>{text}</p>
                   </div>
                 </div>
               )
@@ -1283,10 +1227,6 @@ export default function App() {
           </section>
         )}
       </main>
-
-      {/* =====================================================
-          MODAL PILIHAN
-      ===================================================== */}
 
       {selected && (
         <ServiceProductsModal
