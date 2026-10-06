@@ -7,18 +7,30 @@ import { getUserProfile } from "./firestore";
 const money = (n) =>
   `Rp ${Number(n || 0).toLocaleString("id-ID")}`;
 
-const Icon = ({ n }) => (
-  <span className="ico">
-    {{
-      grid: "⌘",
-      phone: "▯",
-      wallet: "▱",
-      clock: "◷",
-      info: "i",
-      logout: "↪",
-    }[n] || "•"}
-  </span>
-);
+/* =========================
+   ICON MENU
+========================= */
+
+function Icon({ n }) {
+  const icons = {
+    grid: "⌘",
+    phone: "▯",
+    wallet: "▱",
+    clock: "◷",
+    info: "i",
+    logout: "↪",
+  };
+
+  return (
+    <span className="ico">
+      {icons[n] || "•"}
+    </span>
+  );
+}
+
+/* =========================
+   LOGO SULFA
+========================= */
 
 function Logo() {
   return (
@@ -29,12 +41,153 @@ function Logo() {
   );
 }
 
+/* =========================
+   LOGO LAYANAN
+========================= */
+
+function ServiceLogo({ service }) {
+  const code = String(
+    service?.service_code || ""
+  ).toLowerCase();
+
+  const logos = {
+    whatsapp:
+      "https://cdn.simpleicons.org/whatsapp",
+
+    telegram:
+      "https://cdn.simpleicons.org/telegram",
+
+    "instagram-threads":
+      "https://cdn.simpleicons.org/instagram",
+
+    "tiktok-douyin":
+      "https://cdn.simpleicons.org/tiktok",
+
+    facebook:
+      "https://cdn.simpleicons.org/facebook",
+
+    "google-youtube-gmail":
+      "https://cdn.simpleicons.org/google",
+
+    twitter:
+      "https://cdn.simpleicons.org/x",
+
+    discord:
+      "https://cdn.simpleicons.org/discord",
+
+    openai:
+      "https://cdn.simpleicons.org/openai",
+
+    apple:
+      "https://cdn.simpleicons.org/apple",
+
+    microsoft:
+      "https://cdn.simpleicons.org/microsoft",
+
+    amazon:
+      "https://cdn.simpleicons.org/amazon",
+
+    netflix:
+      "https://cdn.simpleicons.org/netflix",
+
+    spotify:
+      "https://cdn.simpleicons.org/spotify",
+
+    snapchat:
+      "https://cdn.simpleicons.org/snapchat",
+
+    tinder:
+      "https://cdn.simpleicons.org/tinder",
+
+    paypal:
+      "https://cdn.simpleicons.org/paypal",
+
+    uber:
+      "https://cdn.simpleicons.org/uber",
+
+    linkedin:
+      "https://cdn.simpleicons.org/linkedin",
+
+    wechat:
+      "https://cdn.simpleicons.org/wechat",
+
+    shopee:
+      "https://cdn.simpleicons.org/shopee",
+
+    line:
+      "https://cdn.simpleicons.org/line",
+
+    viber:
+      "https://cdn.simpleicons.org/viber",
+
+    signal:
+      "https://cdn.simpleicons.org/signal",
+
+    grab:
+      "https://cdn.simpleicons.org/grab",
+
+    gojek:
+      "https://cdn.simpleicons.org/gojek",
+
+    lazada:
+      "https://cdn.simpleicons.org/lazada",
+
+    tokopedia:
+      "https://cdn.simpleicons.org/tokopedia",
+
+    steam:
+      "https://cdn.simpleicons.org/steam",
+
+    roblox:
+      "https://cdn.simpleicons.org/roblox",
+
+    binance:
+      "https://cdn.simpleicons.org/binance",
+
+    coinbase:
+      "https://cdn.simpleicons.org/coinbase",
+  };
+
+  const logo = logos[code];
+
+  return (
+    <div className="service-logo">
+      {logo ? (
+        <img
+          src={logo}
+          alt=""
+          loading="lazy"
+        />
+      ) : (
+        <span>
+          {(service?.service_name || "S")
+            .charAt(0)
+            .toUpperCase()}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/* =========================
+   LOGIN / REGISTER
+========================= */
+
 function Auth() {
-  const [mode, setMode] = useState("login");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [msg, setMsg] = useState("");
+  const [mode, setMode] =
+    useState("login");
+
+  const [name, setName] =
+    useState("");
+
+  const [email, setEmail] =
+    useState("");
+
+  const [password, setPassword] =
+    useState("");
+
+  const [msg, setMsg] =
+    useState("");
 
   async function submit(e) {
     e.preventDefault();
@@ -42,18 +195,29 @@ function Auth() {
 
     try {
       if (mode === "register") {
-        await registerUser(name, email, password);
+        await registerUser(
+          name,
+          email,
+          password
+        );
       } else {
-        await loginUser(email, password);
+        await loginUser(
+          email,
+          password
+        );
       }
     } catch (error) {
-      setMsg(error.message || "Terjadi kesalahan.");
+      setMsg(
+        error.message ||
+          "Terjadi kesalahan."
+      );
     }
   }
 
   return (
     <div className="auth">
       <div className="auth-card">
+
         <Logo />
 
         <span className="eyebrow">
@@ -67,18 +231,23 @@ function Auth() {
         </h1>
 
         <p>
-          Kelola saldo dan pembelian nomor
-          dengan mudah dalam satu tempat.
+          Kelola saldo dan pembelian
+          nomor dengan mudah dalam
+          satu tempat.
         </p>
 
         <form onSubmit={submit}>
+
           {mode === "register" && (
             <label>
               Nama
+
               <input
                 type="text"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) =>
+                  setName(e.target.value)
+                }
                 placeholder="Nama kamu"
                 required
               />
@@ -87,10 +256,13 @@ function Auth() {
 
           <label>
             Email
+
             <input
               type="email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={(e) =>
+                setEmail(e.target.value)
+              }
               placeholder="nama@email.com"
               required
             />
@@ -98,22 +270,32 @@ function Auth() {
 
           <label>
             Password
+
             <input
               type="password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) =>
+                setPassword(
+                  e.target.value
+                )
+              }
               placeholder="Minimal 6 karakter"
               minLength="6"
               required
             />
           </label>
 
-          <button className="primary" type="submit">
+          <button
+            className="primary"
+            type="submit"
+          >
             {mode === "login"
               ? "Masuk"
               : "Buat akun"}
+
             <span>→</span>
           </button>
+
         </form>
 
         {msg && (
@@ -136,51 +318,75 @@ function Auth() {
             ? "Belum punya akun? Daftar"
             : "Sudah punya akun? Masuk"}
         </button>
+
       </div>
     </div>
   );
 }
 
-function Product({ p, onClick }) {
+/* =========================
+   PRODUCT CARD
+========================= */
+
+function Product({
+  p,
+  onClick,
+}) {
   const name =
     p.service_name ||
     p.name ||
     "Nomor Virtual";
 
-  const active = p.active === true;
+  const active =
+    p.active === true;
 
   return (
     <article className="product">
-      <div className="row">
+
+      <div className="product-top">
+
+        <ServiceLogo
+          service={p}
+        />
+
         <span
           className={
-            active ? "ready" : "empty"
+            active
+              ? "ready"
+              : "empty"
           }
         >
           <i />
+
           {active
             ? "TERSEDIA"
             : "SEDANG KOSONG"}
         </span>
 
-        <small>
-          Indonesia
-        </small>
       </div>
 
-      <h3>{name}</h3>
+      <div className="product-info">
 
-      <p>
-        Nomor virtual untuk kebutuhan
-        digital kamu.
-      </p>
+        <h3>{name}</h3>
 
-      <div className="row">
-        <strong>
-          {active
-            ? "Bisa dipesan"
-            : "Belum tersedia"}
-        </strong>
+        <p>
+          Nomor virtual Indonesia
+          untuk layanan {name}.
+        </p>
+
+      </div>
+
+      <div className="product-bottom">
+
+        <div>
+          <small>
+            Negara
+          </small>
+
+          <strong>
+            🇮🇩 Indonesia
+          </strong>
+        </div>
 
         <button
           onClick={onClick}
@@ -190,48 +396,82 @@ function Product({ p, onClick }) {
             ? "Pilih →"
             : "Tidak tersedia"}
         </button>
+
       </div>
+
     </article>
   );
 }
 
-function App() {
-  const [user, setUser] = useState(null);
-  const [profile, setProfile] = useState(null);
+/* =========================
+   APP
+========================= */
 
-  const [services, setServices] = useState([]);
+export default function App() {
 
-  const [page, setPage] = useState("home");
-  const [selected, setSelected] = useState(null);
+  const [user, setUser] =
+    useState(null);
 
-  const [amount, setAmount] = useState("");
+  const [profile, setProfile] =
+    useState(null);
+
+  const [services, setServices] =
+    useState([]);
+
+  const [page, setPage] =
+    useState("home");
+
+  const [selected, setSelected] =
+    useState(null);
+
+  const [amount, setAmount] =
+    useState("");
+
   const [depositData, setDepositData] =
     useState(null);
 
-  const [loading, setLoading] = useState(true);
-  const [catalogLoading, setCatalogLoading] =
-    useState(false);
-  const [depositLoading, setDepositLoading] =
-    useState(false);
+  const [loading, setLoading] =
+    useState(true);
 
-  const [catalogError, setCatalogError] =
-    useState("");
+  const [
+    catalogLoading,
+    setCatalogLoading,
+  ] = useState(false);
+
+  const [
+    depositLoading,
+    setDepositLoading,
+  ] = useState(false);
+
+  const [
+    catalogError,
+    setCatalogError,
+  ] = useState("");
+
+  /* =========================
+     AMBIL LAYANAN
+  ========================= */
 
   async function loadServices() {
+
     setCatalogLoading(true);
     setCatalogError("");
 
     try {
-      const response = await fetch(
-        "/api/nomera/catalog",
-        {
-          headers: {
-            Accept: "application/json",
-          },
-        }
-      );
 
-      const data = await response.json();
+      const response =
+        await fetch(
+          "/api/nomera/catalog",
+          {
+            headers: {
+              Accept:
+                "application/json",
+            },
+          }
+        );
+
+      const data =
+        await response.json();
 
       if (!response.ok) {
         throw new Error(
@@ -240,11 +480,12 @@ function App() {
         );
       }
 
-      const list = Array.isArray(
-        data?.services
-      )
-        ? data.services
-        : [];
+      const list =
+        Array.isArray(
+          data?.services
+        )
+          ? data.services
+          : [];
 
       setServices(list);
 
@@ -253,7 +494,9 @@ function App() {
           "Belum ada layanan yang tersedia saat ini."
         );
       }
+
     } catch (error) {
+
       console.error(error);
 
       setServices([]);
@@ -261,20 +504,33 @@ function App() {
       setCatalogError(
         "Layanan sedang mengalami gangguan. Silakan coba lagi."
       );
+
     } finally {
+
       setCatalogLoading(false);
+
     }
   }
 
+  /* =========================
+     AUTH LISTENER
+  ========================= */
+
   useEffect(() => {
+
     const unsubscribe =
       onAuthStateChanged(
         auth,
         async (currentUser) => {
+
           try {
-            setUser(currentUser);
+
+            setUser(
+              currentUser
+            );
 
             if (currentUser) {
+
               const data =
                 await getUserProfile(
                   currentUser.uid
@@ -283,45 +539,99 @@ function App() {
               setProfile(data);
 
               await loadServices();
+
             } else {
+
               setProfile(null);
               setServices([]);
+
             }
+
           } catch (error) {
+
             console.error(error);
+
           } finally {
+
             setLoading(false);
+
           }
+
         }
       );
 
-    return () => unsubscribe();
+    return () =>
+      unsubscribe();
+
   }, []);
 
+  /* =========================
+     LOADING
+  ========================= */
+
   if (loading) {
+
     return (
       <div className="loading">
+
         <Logo />
+
         <div className="spin" />
+
       </div>
     );
+
   }
+
+  /* =========================
+     LOGIN
+  ========================= */
 
   if (!user) {
     return <Auth />;
   }
 
+  /* =========================
+     NAVIGATION
+  ========================= */
+
   const navigation = [
-    ["home", "Beranda", "grid"],
-    ["products", "Nomor", "phone"],
-    ["deposit", "Saldo", "wallet"],
-    ["orders", "Pesanan", "clock"],
-    ["info", "Bantuan", "info"],
+    [
+      "home",
+      "Beranda",
+      "grid",
+    ],
+    [
+      "products",
+      "Nomor",
+      "phone",
+    ],
+    [
+      "deposit",
+      "Saldo",
+      "wallet",
+    ],
+    [
+      "orders",
+      "Pesanan",
+      "clock",
+    ],
+    [
+      "info",
+      "Bantuan",
+      "info",
+    ],
   ];
 
   return (
     <div className="shell">
+
+      {/* =====================
+          SIDEBAR
+      ===================== */}
+
       <aside>
+
         <Logo />
 
         <small className="caption">
@@ -329,8 +639,10 @@ function App() {
         </small>
 
         <nav>
+
           {navigation.map(
             ([id, title, icon]) => (
+
               <button
                 key={id}
                 className={
@@ -342,15 +654,22 @@ function App() {
                   setPage(id)
                 }
               >
+
                 <Icon n={icon} />
+
                 {title}
+
               </button>
+
             )
           )}
+
         </nav>
 
         <div className="side">
+
           <div className="balance">
+
             <small>
               Saldo kamu
             </small>
@@ -368,21 +687,36 @@ function App() {
             >
               Tambah saldo +
             </button>
+
           </div>
 
           <button
             className="logout"
-            onClick={logoutUser}
+            onClick={
+              logoutUser
+            }
           >
+
             <Icon n="logout" />
+
             Keluar
+
           </button>
+
         </div>
+
       </aside>
 
+      {/* =====================
+          MAIN
+      ===================== */}
+
       <main>
+
         <header>
+
           <div>
+
             <span className="eyebrow">
               SULFA MEDIA STORE
             </span>
@@ -395,9 +729,11 @@ function App() {
                 )?.[1]
               }
             </h2>
+
           </div>
 
           <div className="account">
+
             {profile?.name ||
               user.email}
 
@@ -407,13 +743,22 @@ function App() {
                 ? "Developer"
                 : "Member"}
             </b>
+
           </div>
+
         </header>
+
+        {/* =====================
+            HOME
+        ===================== */}
 
         {page === "home" && (
           <>
+
             <section className="hero">
+
               <div>
+
                 <span className="eyebrow">
                   NOMOR DIGITAL
                 </span>
@@ -421,20 +766,26 @@ function App() {
                 <h1>
                   Nomor virtual,
                   <br />
-                  <em>lebih praktis.</em>
+                  <em>
+                    lebih praktis.
+                  </em>
                 </h1>
 
                 <p>
-                  Temukan nomor yang kamu
-                  butuhkan dengan proses yang
-                  cepat dan sederhana.
+                  Temukan nomor yang
+                  kamu butuhkan dengan
+                  proses yang cepat dan
+                  sederhana.
                 </p>
 
                 <div className="actions">
+
                   <button
                     className="primary"
                     onClick={() =>
-                      setPage("products")
+                      setPage(
+                        "products"
+                      )
                     }
                   >
                     Lihat nomor →
@@ -443,22 +794,29 @@ function App() {
                   <button
                     className="secondary"
                     onClick={() =>
-                      setPage("deposit")
+                      setPage(
+                        "deposit"
+                      )
                     }
                   >
                     Isi saldo
                   </button>
+
                 </div>
+
               </div>
 
               <div className="orbit">
                 <b>SMS</b>
               </div>
+
             </section>
 
             <div className="stats">
+
               <div>
                 Saldo
+
                 <strong>
                   {money(
                     profile?.balance
@@ -468,6 +826,7 @@ function App() {
 
               <div>
                 Layanan
+
                 <strong>
                   {services.length}
                 </strong>
@@ -475,6 +834,7 @@ function App() {
 
               <div>
                 Ketersediaan
+
                 <strong>
                   {services.length
                     ? "Aktif"
@@ -484,15 +844,18 @@ function App() {
 
               <div>
                 Pembelian
+
                 <strong>
                   {profile
-                    ?.purchaseCount || 0}
+                    ?.purchaseCount ||
+                    0}
                 </strong>
               </div>
+
             </div>
 
             <h3>
-              Pilihan nomor
+              Pilihan layanan
             </h3>
 
             {catalogError && (
@@ -502,63 +865,79 @@ function App() {
             )}
 
             <div className="grid">
+
               {catalogLoading && (
                 <div className="emptybox">
-                  Menyiapkan pilihan nomor...
+                  Menyiapkan pilihan
+                  layanan...
                 </div>
               )}
 
               {!catalogLoading &&
                 services
-                  .slice(0, 3)
-                  .map((service) => (
-                    <Product
-                      key={
-                        service.service_id
-                      }
-                      p={service}
-                      onClick={() =>
-                        setSelected(
-                          service
-                        )
-                      }
-                    />
-                  ))}
+                  .slice(0, 4)
+                  .map(
+                    (service) => (
+                      <Product
+                        key={
+                          service.service_id
+                        }
+                        p={service}
+                        onClick={() =>
+                          setSelected(
+                            service
+                          )
+                        }
+                      />
+                    )
+                  )}
 
               {!catalogLoading &&
                 !services.length && (
                   <div className="emptybox">
-                    Belum ada nomor yang
-                    tersedia.
+                    Belum ada layanan
+                    yang tersedia.
                   </div>
                 )}
+
             </div>
+
           </>
         )}
 
+        {/* =====================
+            PRODUCTS
+        ===================== */}
+
         {page === "products" && (
           <>
+
             <div className="intro">
+
               <span className="eyebrow">
-                PILIHAN NOMOR
+                PILIHAN LAYANAN
               </span>
 
               <h1>
-                Pilih layanan yang
-                kamu butuhkan.
+                Pilih yang kamu
+                butuhkan.
               </h1>
 
               <p>
-                Pilih salah satu layanan
-                untuk melihat pilihan yang
+                Temukan layanan dan
+                pilih nomor yang
                 tersedia.
               </p>
+
             </div>
 
             <div className="actions">
+
               <button
                 className="secondary"
-                onClick={loadServices}
+                onClick={
+                  loadServices
+                }
                 disabled={
                   catalogLoading
                 }
@@ -567,6 +946,7 @@ function App() {
                   ? "Memuat..."
                   : "Muat ulang"}
               </button>
+
             </div>
 
             {catalogError && (
@@ -576,9 +956,11 @@ function App() {
             )}
 
             <div className="grid">
+
               {catalogLoading && (
                 <div className="emptybox">
-                  Menyiapkan pilihan nomor...
+                  Menyiapkan pilihan
+                  layanan...
                 </div>
               )}
 
@@ -606,13 +988,21 @@ function App() {
                     tersedia.
                   </div>
                 )}
+
             </div>
+
           </>
         )}
 
+        {/* =====================
+            DEPOSIT
+        ===================== */}
+
         {page === "deposit" && (
           <section className="deposit">
+
             <div className="panel">
+
               <span className="eyebrow">
                 SALDO
               </span>
@@ -622,8 +1012,9 @@ function App() {
               </h1>
 
               <p>
-                Masukkan jumlah yang ingin
-                kamu tambahkan ke saldo.
+                Masukkan jumlah yang
+                ingin kamu tambahkan
+                ke saldo.
               </p>
 
               <div className="big">
@@ -650,8 +1041,10 @@ function App() {
               </label>
 
               <div className="quick">
+
                 {[5000, 10000, 25000, 50000].map(
                   (value) => (
+
                     <button
                       key={value}
                       onClick={() =>
@@ -662,22 +1055,27 @@ function App() {
                     >
                       {money(value)}
                     </button>
+
                   )
                 )}
+
               </div>
 
               <button
                 className="primary wide"
                 disabled={
-                  Number(amount) < 5000 ||
+                  Number(amount) <
+                    5000 ||
                   depositLoading
                 }
                 onClick={async () => {
+
                   setDepositLoading(
                     true
                   );
 
                   try {
+
                     const token =
                       await getIdToken(
                         user
@@ -689,12 +1087,15 @@ function App() {
                         {
                           method:
                             "POST",
+
                           headers: {
                             "Content-Type":
                               "application/json",
+
                             Authorization:
                               `Bearer ${token}`,
                           },
+
                           body:
                             JSON.stringify({
                               amount:
@@ -718,15 +1119,21 @@ function App() {
                     setDepositData(
                       data
                     );
+
                   } catch (error) {
+
                     alert(
                       error.message
                     );
+
                   } finally {
+
                     setDepositLoading(
                       false
                     );
+
                   }
+
                 }}
               >
                 {depositLoading
@@ -735,7 +1142,9 @@ function App() {
               </button>
 
               {depositData && (
+
                 <div className="payment">
+
                   <b>
                     PEMBAYARAN SIAP
                   </b>
@@ -754,6 +1163,7 @@ function App() {
                     depositData?.data
                       ?.invoice_url
                   ) && (
+
                     <a
                       className="primary wide"
                       href={
@@ -772,24 +1182,31 @@ function App() {
                     >
                       Bayar sekarang →
                     </a>
+
                   )}
 
                   <small>
                     Setelah pembayaran
-                    berhasil, saldo akan
-                    diperbarui secara
+                    berhasil, saldo kamu
+                    akan diperbarui
                     otomatis.
                   </small>
+
                 </div>
+
               )}
+
             </div>
 
             <div className="steps">
+
               <div>
                 <b>01</b>
+
                 <h3>
                   Pilih jumlah
                 </h3>
+
                 <p>
                   Tentukan jumlah saldo
                   yang ingin ditambahkan.
@@ -798,9 +1215,11 @@ function App() {
 
               <div>
                 <b>02</b>
+
                 <h3>
                   Lakukan pembayaran
                 </h3>
+
                 <p>
                   Selesaikan pembayaran
                   sesuai petunjuk.
@@ -809,21 +1228,31 @@ function App() {
 
               <div>
                 <b>03</b>
+
                 <h3>
                   Saldo bertambah
                 </h3>
+
                 <p>
                   Setelah pembayaran
                   berhasil, saldo kamu
                   diperbarui otomatis.
                 </p>
               </div>
+
             </div>
+
           </section>
         )}
 
+        {/* =====================
+            ORDERS
+        ===================== */}
+
         {page === "orders" && (
+
           <section className="intro">
+
             <span className="eyebrow">
               PESANAN
             </span>
@@ -833,30 +1262,38 @@ function App() {
             </h1>
 
             <p>
-              Pesanan yang kamu buat akan
-              muncul di halaman ini.
+              Semua pembelian kamu
+              akan muncul di sini.
             </p>
 
             <div className="emptybox">
               Belum ada pesanan.
             </div>
+
           </section>
+
         )}
 
+        {/* =====================
+            INFO
+        ===================== */}
+
         {page === "info" && (
+
           <section className="intro">
+
             <span className="eyebrow">
-              CARA MENGGUNAKAN
+              BANTUAN
             </span>
 
             <h1>
-              Semuanya sederhana.
+              Cara menggunakan
+              SULFA.
             </h1>
 
             <p>
-              Ikuti beberapa langkah berikut
-              untuk menggunakan SULFA MEDIA
-              STORE.
+              Ikuti beberapa langkah
+              sederhana berikut.
             </p>
 
             {[
@@ -867,56 +1304,79 @@ function App() {
               ],
               [
                 "02",
-                "Pilih pilihan yang tersedia",
-                "Pilih negara dan pilihan nomor yang tersedia.",
+                "Pilih nomor",
+                "Pilih negara dan nomor yang tersedia.",
               ],
               [
                 "03",
-                "Periksa jumlah pembayaran",
-                "Pastikan saldo kamu mencukupi sebelum melanjutkan.",
+                "Periksa pembayaran",
+                "Pastikan saldo kamu mencukupi.",
               ],
               [
                 "04",
                 "Selesaikan pesanan",
-                "Ikuti proses pemesanan sampai selesai.",
+                "Ikuti proses sampai pesanan selesai.",
               ],
               [
                 "05",
-                "Lihat pesanan",
-                "Pantau pesanan kamu dari menu Pesanan.",
+                "Cek pesanan",
+                "Pantau pembelian kamu melalui menu Pesanan.",
               ],
             ].map(
               ([number, title, text]) => (
+
                 <div
                   className="timeline"
                   key={number}
                 >
-                  <b>{number}</b>
+
+                  <b>
+                    {number}
+                  </b>
 
                   <div>
-                    <h3>{title}</h3>
-                    <p>{text}</p>
+
+                    <h3>
+                      {title}
+                    </h3>
+
+                    <p>
+                      {text}
+                    </p>
+
                   </div>
+
                 </div>
+
               )
             )}
+
           </section>
+
         )}
+
       </main>
 
+      {/* =====================
+          DETAIL SERVICE
+      ===================== */}
+
       {selected && (
+
         <div
           className="modal-bg"
           onClick={() =>
             setSelected(null)
           }
         >
+
           <div
             className="modal"
             onClick={(e) =>
               e.stopPropagation()
             }
           >
+
             <button
               className="close"
               onClick={() =>
@@ -926,8 +1386,12 @@ function App() {
               ×
             </button>
 
+            <ServiceLogo
+              service={selected}
+            />
+
             <span className="eyebrow">
-              PILIHAN
+              PILIHAN LAYANAN
             </span>
 
             <h2>
@@ -936,8 +1400,9 @@ function App() {
             </h2>
 
             <p>
-              Silakan lanjut untuk melihat
-              pilihan nomor yang tersedia.
+              Pilih untuk melihat
+              pilihan nomor yang
+              tersedia.
             </p>
 
             <button
@@ -948,11 +1413,13 @@ function App() {
             >
               Lihat pilihan →
             </button>
+
           </div>
+
         </div>
+
       )}
+
     </div>
   );
 }
-
-export default App;
