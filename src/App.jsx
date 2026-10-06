@@ -4,387 +4,313 @@ import {
   onAuthStateChanged,
   signInWithEmailAndPassword,
   signOut,
-  updateProfile,
 } from "firebase/auth";
 import {
   doc,
   onSnapshot,
   setDoc,
-  serverTimestamp,
 } from "firebase/firestore";
+
 import { auth, db } from "./firebase";
 import "./style.css";
 
 const API_BASE = "/api/nomera";
 
-function formatRupiah(value) {
+const formatRupiah = (value) => {
+  const number = Number(value || 0);
+
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
     maximumFractionDigits: 0,
-  }).format(Number(value || 0));
-}
+  }).format(number);
+};
 
 /* =========================================================
-   SVG LOGO
+   SERVICE LOGOS
 ========================================================= */
 
-function Logo({ compact = false }) {
+const SERVICE_LOGOS = {
+  whatsapp: "https://cdn.simpleicons.org/whatsapp",
+  telegram: "https://cdn.simpleicons.org/telegram",
+  "instagram-threads": "https://cdn.simpleicons.org/instagram",
+  "tiktok-douyin": "https://cdn.simpleicons.org/tiktok",
+  facebook: "https://cdn.simpleicons.org/facebook",
+  "google-youtube-gmail": "https://cdn.simpleicons.org/google",
+  twitter: "https://cdn.simpleicons.org/x",
+  discord: "https://cdn.simpleicons.org/discord",
+  openai: "https://cdn.simpleicons.org/openai",
+  apple: "https://cdn.simpleicons.org/apple",
+  microsoft: "https://cdn.simpleicons.org/microsoft",
+  amazon: "https://cdn.simpleicons.org/amazon",
+  netflix: "https://cdn.simpleicons.org/netflix",
+  spotify: "https://cdn.simpleicons.org/spotify",
+  snapchat: "https://cdn.simpleicons.org/snapchat",
+  tinder: "https://cdn.simpleicons.org/tinder",
+  paypal: "https://cdn.simpleicons.org/paypal",
+  uber: "https://cdn.simpleicons.org/uber",
+  linkedin: "https://cdn.simpleicons.org/linkedin",
+  wechat: "https://cdn.simpleicons.org/wechat",
+  shopee: "https://cdn.simpleicons.org/shopee",
+  line: "https://cdn.simpleicons.org/line",
+  viber: "https://cdn.simpleicons.org/viber",
+  signal: "https://cdn.simpleicons.org/signal",
+  grab: "https://cdn.simpleicons.org/grab",
+  gojek: "https://cdn.simpleicons.org/gojek",
+  lazada: "https://cdn.simpleicons.org/lazada",
+  tokopedia: "https://cdn.simpleicons.org/tokopedia",
+  steam: "https://cdn.simpleicons.org/steam",
+  roblox: "https://cdn.simpleicons.org/roblox",
+  binance: "https://cdn.simpleicons.org/binance",
+  coinbase: "https://cdn.simpleicons.org/coinbase",
+};
+
+const FALLBACK_LOGO =
+  "https://cdn.simpleicons.org/google";
+
+function ServiceLogo({ service }) {
+  const src =
+    SERVICE_LOGOS[service?.service_code] ||
+    service?.logo_url ||
+    FALLBACK_LOGO;
+
   return (
-    <div className={`sms-logo ${compact ? "compact" : ""}`}>
-      <svg
-        className="sms-logo-svg"
-        viewBox="0 0 80 80"
-        fill="none"
-        aria-hidden="true"
-      >
-        <rect
-          x="2"
-          y="2"
-          width="76"
-          height="76"
-          rx="23"
-          fill="url(#smsGradient)"
-        />
-
-        <path
-          d="M22 48.5C22 54.3 26.3 58 32.4 58C38.3 58 41.5 55.2 41.5 51C41.5 46.8 39 44.8 33.7 43.2L30.7 42.3C27.7 41.4 26.5 40.1 26.5 38.1C26.5 35.6 28.6 34 32.1 34C35.5 34 37.7 35.7 38.1 38.6H42.2C41.8 33.6 37.9 30.5 32.1 30.5C26 30.5 22.3 33.5 22.3 38.2C22.3 42.3 24.8 44.7 29.8 46.2L32.8 47.1C36.1 48.1 37.2 49.3 37.2 51.3C37.2 53.7 35.2 55.2 32.2 55.2C28.5 55.2 26.2 53 26.1 49.7H22Z"
-          fill="white"
-        />
-
-        <path
-          d="M45 31V57H49V38L55.2 49.2H58.2L64.5 38V57H68.5V31H64.1L56.8 44.5L49.5 31H45Z"
-          fill="white"
-        />
-
-        <defs>
-          <linearGradient
-            id="smsGradient"
-            x1="8"
-            y1="5"
-            x2="73"
-            y2="76"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#60A5FA" />
-            <stop offset="0.5" stopColor="#2563EB" />
-            <stop offset="1" stopColor="#1D4ED8" />
-          </linearGradient>
-        </defs>
-      </svg>
-
-      {!compact && (
-        <div className="sms-logo-text">
-          <strong>SULFA</strong>
-          <span>MEDIA STORE</span>
-        </div>
-      )}
+    <div className="service-logo">
+      <img
+        src={src}
+        alt={service?.service_name || "App"}
+        loading="lazy"
+        onError={(e) => {
+          e.currentTarget.src = FALLBACK_LOGO;
+        }}
+      />
     </div>
   );
 }
 
 /* =========================================================
-   GENERIC SVG ICON
+   SMS LOGO
 ========================================================= */
 
-function SvgIcon({ name, size = 20 }) {
-  const common = {
-    width: size,
-    height: size,
-    viewBox: "0 0 24 24",
-    fill: "none",
-    stroke: "currentColor",
-    strokeWidth: 1.8,
-    strokeLinecap: "round",
-    strokeLinejoin: "round",
-    "aria-hidden": true,
-  };
+function Logo() {
+  return (
+    <div className="brand">
+      <div className="brand-mark">SMS</div>
 
+      <div className="brand-text">
+        <strong>SULFA</strong>
+        <span>MEDIA STORE</span>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
+   ICON
+========================================================= */
+
+function Icon({ name }) {
   const icons = {
     home: (
-      <svg {...common}>
-        <path d="M3 10.8 12 3l9 7.8" />
-        <path d="M5.5 9.8V21h13V9.8" />
-        <path d="M9.5 21v-6h5v6" />
+      <svg viewBox="0 0 24 24">
+        <path d="M3 10.5 12 3l9 7.5v9a1.5 1.5 0 0 1-1.5 1.5h-15A1.5 1.5 0 0 1 3 19.5z" />
+        <path d="M9 21v-6h6v6" />
       </svg>
     ),
 
-    phone: (
-      <svg {...common}>
-        <rect x="6" y="2.5" width="12" height="19" rx="2.5" />
-        <path d="M10 18h4" />
+    number: (
+      <svg viewBox="0 0 24 24">
+        <rect x="5" y="2.5" width="14" height="19" rx="2.5" />
+        <path d="M9 5.5h6M9 18.5h6" />
       </svg>
     ),
 
     wallet: (
-      <svg {...common}>
-        <path d="M4 6.5h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2Z" />
-        <path d="M3 7V5.5A2.5 2.5 0 0 1 5.5 3H18" />
-        <path d="M16 13h3" />
+      <svg viewBox="0 0 24 24">
+        <path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v10A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z" />
+        <path d="M16 12h5M17 12.5v-1" />
       </svg>
     ),
 
     orders: (
-      <svg {...common}>
-        <rect x="5" y="3" width="14" height="18" rx="2" />
-        <path d="M8.5 8h7M8.5 12h7M8.5 16h4" />
+      <svg viewBox="0 0 24 24">
+        <path d="M5 3h14v18H5z" />
+        <path d="M8 7h8M8 11h8M8 15h5" />
       </svg>
     ),
 
     help: (
-      <svg {...common}>
+      <svg viewBox="0 0 24 24">
         <circle cx="12" cy="12" r="9" />
-        <path d="M9.7 9a2.5 2.5 0 1 1 4.2 1.8c-1.1.9-1.9 1.2-1.9 2.7" />
-        <path d="M12 17h.01" />
+        <path d="M9.5 9a2.5 2.5 0 1 1 4.4 1.6c-.8.8-1.9 1.1-1.9 2.4" />
+        <path d="M12 16.5h.01" />
       </svg>
     ),
 
     logout: (
-      <svg {...common}>
-        <path d="M10 4H6a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h4" />
-        <path d="m14 16 4-4-4-4" />
-        <path d="M18 12H9" />
+      <svg viewBox="0 0 24 24">
+        <path d="M10 4H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h5" />
+        <path d="M14 8l4 4-4 4M8 12h10" />
+      </svg>
+    ),
+
+    search: (
+      <svg viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="6.5" />
+        <path d="m16 16 5 5" />
       </svg>
     ),
 
     arrow: (
-      <svg {...common}>
-        <path d="M5 12h13" />
-        <path d="m13 6 6 6-6 6" />
-      </svg>
-    ),
-
-    plus: (
-      <svg {...common}>
-        <path d="M12 5v14M5 12h14" />
+      <svg viewBox="0 0 24 24">
+        <path d="m9 18 6-6-6-6" />
       </svg>
     ),
 
     close: (
-      <svg {...common}>
+      <svg viewBox="0 0 24 24">
         <path d="m6 6 12 12M18 6 6 18" />
       </svg>
     ),
 
-    shield: (
-      <svg {...common}>
-        <path d="M12 3 20 6v5c0 5.2-3.3 8.5-8 10-4.7-1.5-8-4.8-8-10V6l8-3Z" />
-        <path d="m8.5 12 2.2 2.2 4.8-5" />
-      </svg>
-    ),
-
-    zap: (
-      <svg {...common}>
-        <path d="m13 2-8 12h6l-1 8 8-12h-6l1-8Z" />
-      </svg>
-    ),
-
-    globe: (
-      <svg {...common}>
-        <circle cx="12" cy="12" r="9" />
-        <path d="M3 12h18M12 3c2.3 2.5 3.4 5.5 3.4 9s-1.1 6.5-3.4 9c-2.3-2.5-3.4-5.5-3.4-9S9.7 5.5 12 3Z" />
+    refresh: (
+      <svg viewBox="0 0 24 24">
+        <path d="M20 11a8 8 0 0 0-14.7-4M4 5v5h5" />
+        <path d="M4 13a8 8 0 0 0 14.7 4M20 19v-5h-5" />
       </svg>
     ),
   };
 
-  return icons[name] || icons.globe;
+  return <span className="icon">{icons[name]}</span>;
 }
 
 /* =========================================================
-   SERVICE SVG ICON
+   LOGIN
 ========================================================= */
 
-function ServiceLogo({ service }) {
-  const code = service?.service_code || "";
-
-  const letters = {
-    whatsapp: "W",
-    telegram: "T",
-    "instagram-threads": "I",
-    "tiktok-douyin": "T",
-    facebook: "F",
-    "google-youtube-gmail": "G",
-    twitter: "X",
-    discord: "D",
-    openai: "AI",
-    apple: "A",
-    microsoft: "M",
-    amazon: "a",
-    netflix: "N",
-    spotify: "S",
-    snapchat: "S",
-    tinder: "T",
-    paypal: "P",
-    uber: "U",
-    linkedin: "in",
-    wechat: "W",
-    shopee: "S",
-    line: "L",
-    viber: "V",
-    signal: "S",
-    grab: "G",
-    gojek: "G",
-    lazada: "L",
-    tokopedia: "T",
-    steam: "S",
-    roblox: "R",
-    binance: "B",
-    coinbase: "C",
-  };
-
-  return (
-    <div className={`service-logo service-${code}`}>
-      <svg viewBox="0 0 48 48" className="service-svg">
-        <rect x="1" y="1" width="46" height="46" rx="14" />
-
-        <text
-          x="24"
-          y="29"
-          textAnchor="middle"
-          className="service-svg-text"
-        >
-          {letters[code] || service?.service_name?.slice(0, 1) || "?"}
-        </text>
-      </svg>
-    </div>
-  );
-}
-
-/* =========================================================
-   LOADING
-========================================================= */
-
-function LoadingScreen() {
-  return (
-    <div className="screen-loading">
-      <div className="loading-orbit">
-        <div className="loading-ring" />
-        <Logo />
-      </div>
-
-      <div className="loading-copy">
-        <strong>Menyiapkan SULFA</strong>
-        <span>MEDIA STORE</span>
-
-        <div className="loading-progress">
-          <i />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* =========================================================
-   AUTH
-========================================================= */
-
-function Login({ onSwitch }) {
+function Login({ onRegister }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function submit(e) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleLogin = async (e) => {
     e.preventDefault();
 
     setError("");
 
-    if (!email.trim() || !password) {
+    if (!email || !password) {
       setError("Email dan password wajib diisi.");
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
+
       await signInWithEmailAndPassword(
         auth,
         email.trim(),
         password
       );
     } catch (err) {
-      if (err.code === "auth/user-not-found") {
-        setError("Akun tidak ditemukan.");
+      if (
+        err.code === "auth/user-not-found" ||
+        err.code === "auth/invalid-credential"
+      ) {
+        setError("Akun tidak ditemukan atau password salah.");
       } else if (err.code === "auth/wrong-password") {
         setError("Password salah.");
-      } else if (err.code === "auth/invalid-credential") {
-        setError("Email atau password salah.");
       } else if (err.code === "auth/invalid-email") {
         setError("Format email tidak valid.");
-      } else if (err.code === "auth/too-many-requests") {
-        setError(
-          "Terlalu banyak percobaan. Coba lagi beberapa saat."
-        );
       } else {
-        setError("Gagal masuk. Silakan coba lagi.");
+        setError("Login gagal. Silakan coba lagi.");
       }
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <AuthShell
-      mode="login"
-      title="Masuk ke akun"
-      description="Kelola saldo, nomor digital, dan pesanan kamu dalam satu tempat."
-      onSwitch={onSwitch}
-    >
-      <form onSubmit={submit} className="auth-form">
-        <AuthInput
-          label="Email"
-          type="email"
-          placeholder="nama@email.com"
-          value={email}
-          onChange={setEmail}
-        />
+    <div className="auth-screen">
+      <div className="auth-box">
+        <div className="auth-logo">
+          <Logo />
+        </div>
 
-        <AuthInput
-          label="Password"
-          type="password"
-          placeholder="Masukkan password"
-          value={password}
-          onChange={setPassword}
-        />
+        <div className="auth-title">
+          <h1>Masuk</h1>
+          <p>Masuk ke akun Sulfa Media Store</p>
+        </div>
 
-        {error && <div className="auth-alert">{error}</div>}
+        <form onSubmit={handleLogin}>
+          <label>Email</label>
 
-        <button
-          className="auth-submit"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <span className="button-spinner" />
-              Memproses...
-            </>
-          ) : (
-            <>
-              Masuk
-              <SvgIcon name="arrow" size={17} />
-            </>
-          )}
-        </button>
-      </form>
-    </AuthShell>
+          <input
+            type="email"
+            placeholder="contoh@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+
+          <label>Password</label>
+
+          <input
+            type="password"
+            placeholder="Masukkan password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
+          />
+
+          {error && <div className="form-error">{error}</div>}
+
+          <button
+            className="primary-button full"
+            disabled={loading}
+          >
+            {loading ? "Memproses..." : "Masuk"}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          Belum punya akun?
+
+          <button onClick={onRegister}>
+            Daftar sekarang
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
-function Register({ onSwitch }) {
+/* =========================================================
+   REGISTER
+========================================================= */
+
+function Register({ onLogin }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  async function submit(e) {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRegister = async (e) => {
     e.preventDefault();
 
     setError("");
 
-    if (!name.trim() || !email.trim() || !password || !confirm) {
-      setError("Semua field wajib diisi.");
+    if (!name.trim()) {
+      setError("Nama wajib diisi.");
+      return;
+    }
+
+    if (!email.trim()) {
+      setError("Email wajib diisi.");
       return;
     }
 
@@ -398,9 +324,9 @@ function Register({ onSwitch }) {
       return;
     }
 
-    setLoading(true);
-
     try {
+      setLoading(true);
+
       const credential =
         await createUserWithEmailAndPassword(
           auth,
@@ -408,217 +334,97 @@ function Register({ onSwitch }) {
           password
         );
 
-      await updateProfile(credential.user, {
-        displayName: name.trim(),
-      });
-
       await setDoc(doc(db, "users", credential.user.uid), {
         name: name.trim(),
         email: email.trim(),
         role: "pembeli",
         balance: 0,
         purchaseCount: 0,
-        createdAt: serverTimestamp(),
+        createdAt: new Date().toISOString(),
       });
     } catch (err) {
       if (err.code === "auth/email-already-in-use") {
-        setError("Email sudah terdaftar. Silakan masuk.");
+        setError("Email tersebut sudah terdaftar.");
       } else if (err.code === "auth/invalid-email") {
         setError("Format email tidak valid.");
       } else if (err.code === "auth/weak-password") {
         setError("Password terlalu lemah.");
       } else {
-        setError("Registrasi gagal. Silakan coba lagi.");
+        setError("Pendaftaran gagal. Silakan coba lagi.");
       }
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   return (
-    <AuthShell
-      mode="register"
-      title="Buat akun baru"
-      description="Daftar sekarang untuk mulai menggunakan SULFA MEDIA STORE."
-      onSwitch={onSwitch}
-    >
-      <form onSubmit={submit} className="auth-form">
-        <AuthInput
-          label="Nama"
-          type="text"
-          placeholder="Nama kamu"
-          value={name}
-          onChange={setName}
-        />
-
-        <AuthInput
-          label="Email"
-          type="email"
-          placeholder="nama@email.com"
-          value={email}
-          onChange={setEmail}
-        />
-
-        <AuthInput
-          label="Password"
-          type="password"
-          placeholder="Minimal 6 karakter"
-          value={password}
-          onChange={setPassword}
-        />
-
-        <AuthInput
-          label="Konfirmasi password"
-          type="password"
-          placeholder="Ulangi password"
-          value={confirm}
-          onChange={setConfirm}
-        />
-
-        {error && <div className="auth-alert">{error}</div>}
-
-        <button
-          className="auth-submit"
-          disabled={loading}
-        >
-          {loading ? (
-            <>
-              <span className="button-spinner" />
-              Membuat akun...
-            </>
-          ) : (
-            <>
-              Daftar
-              <SvgIcon name="arrow" size={17} />
-            </>
-          )}
-        </button>
-      </form>
-    </AuthShell>
-  );
-}
-
-function AuthInput({
-  label,
-  type,
-  placeholder,
-  value,
-  onChange,
-}) {
-  return (
-    <label className="auth-field">
-      <span>{label}</span>
-
-      <input
-        type={type}
-        placeholder={placeholder}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        autoComplete={
-          type === "password" ? "current-password" : "email"
-        }
-      />
-    </label>
-  );
-}
-
-function AuthShell({
-  mode,
-  title,
-  description,
-  children,
-  onSwitch,
-}) {
-  return (
-    <div className="auth-page">
-      <div className="auth-background">
-        <div className="auth-grid" />
-        <div className="auth-glow auth-glow-one" />
-        <div className="auth-glow auth-glow-two" />
-      </div>
-
-      <div className="auth-container">
-        <div className="auth-showcase">
+    <div className="auth-screen">
+      <div className="auth-box">
+        <div className="auth-logo">
           <Logo />
-
-          <div className="showcase-content">
-            <span className="showcase-label">
-              DIGITAL NUMBER PLATFORM
-            </span>
-
-            <h1>
-              Nomor digital.
-              <br />
-              <span>Lebih praktis.</span>
-            </h1>
-
-            <p>
-              Platform untuk mengelola layanan nomor digital
-              dengan tampilan sederhana, cepat, dan modern.
-            </p>
-
-            <div className="showcase-pills">
-              <span>
-                <SvgIcon name="shield" size={14} />
-                Aman
-              </span>
-
-              <span>
-                <SvgIcon name="zap" size={14} />
-                Cepat
-              </span>
-
-              <span>
-                <SvgIcon name="globe" size={14} />
-                Multi layanan
-              </span>
-            </div>
-          </div>
-
-          <div className="showcase-footer">
-            SULFA MEDIA STORE
-          </div>
         </div>
 
-        <div className="auth-card">
-          <div className="auth-mobile-logo">
-            <Logo compact />
-          </div>
+        <div className="auth-title">
+          <h1>Buat Akun</h1>
+          <p>Daftar untuk mulai menggunakan store</p>
+        </div>
 
-          <div className="auth-card-heading">
-            <span>
-              {mode === "login" ? "WELCOME BACK" : "GET STARTED"}
-            </span>
+        <form onSubmit={handleRegister}>
+          <label>Nama</label>
 
-            <h2>{title}</h2>
+          <input
+            type="text"
+            placeholder="Nama kamu"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+          />
 
-            <p>{description}</p>
-          </div>
+          <label>Email</label>
 
-          {children}
+          <input
+            type="email"
+            placeholder="contoh@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+          />
 
-          <div className="auth-switch">
-            {mode === "login"
-              ? "Belum punya akun?"
-              : "Sudah punya akun?"}
+          <label>Password</label>
 
-            <button onClick={onSwitch}>
-              {mode === "login" ? "Daftar" : "Masuk"}
-            </button>
-          </div>
+          <input
+            type="password"
+            placeholder="Minimal 6 karakter"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+
+          <label>Konfirmasi Password</label>
+
+          <input
+            type="password"
+            placeholder="Ulangi password"
+            value={confirm}
+            onChange={(e) => setConfirm(e.target.value)}
+          />
+
+          {error && <div className="form-error">{error}</div>}
+
+          <button
+            className="primary-button full"
+            disabled={loading}
+          >
+            {loading ? "Membuat akun..." : "Daftar"}
+          </button>
+        </form>
+
+        <div className="auth-switch">
+          Sudah punya akun?
+
+          <button onClick={onLogin}>
+            Masuk
+          </button>
         </div>
       </div>
     </div>
-  );
-}
-
-function Auth() {
-  const [mode, setMode] = useState("login");
-
-  return mode === "login" ? (
-    <Login onSwitch={() => setMode("register")} />
-  ) : (
-    <Register onSwitch={() => setMode("login")} />
   );
 }
 
@@ -626,42 +432,22 @@ function Auth() {
    SERVICE CARD
 ========================================================= */
 
-function ServiceCard({ service, onOpen }) {
+function ServiceCard({ service, onClick }) {
   return (
     <button
-      className="service-card-new"
-      onClick={() => onOpen(service)}
+      className="service-card"
+      onClick={() => onClick(service)}
     >
-      <div className="service-card-glow" />
+      <ServiceLogo service={service} />
 
-      <div className="service-card-top-new">
-        <ServiceLogo service={service} />
-
-        <span className="service-open">
-          <SvgIcon name="arrow" size={15} />
-        </span>
+      <div className="service-info">
+        <strong>{service.service_name}</strong>
+        <span>Nomor tersedia</span>
       </div>
 
-      <div className="service-card-info-new">
-        <span className="service-mini-label">
-          DIGITAL SERVICE
-        </span>
-
-        <h3>{service.service_name}</h3>
-
-        <p>
-          Nomor digital tersedia untuk layanan ini.
-        </p>
-      </div>
-
-      <div className="service-card-footer-new">
-        <span>
-          <i />
-          Tersedia
-        </span>
-
-        <strong>Explore</strong>
-      </div>
+      <span className="card-arrow">
+        <Icon name="arrow" />
+      </span>
     </button>
   );
 }
@@ -670,230 +456,241 @@ function ServiceCard({ service, onOpen }) {
    PRODUCT MODAL
 ========================================================= */
 
-const flags = {
-  ID: "🇮🇩",
-  US: "🇺🇸",
-  MY: "🇲🇾",
-  SG: "🇸🇬",
-  JP: "🇯🇵",
-  GB: "🇬🇧",
-  CA: "🇨🇦",
-  PH: "🇵🇭",
-  TH: "🇹🇭",
-  VN: "🇻🇳",
-  IN: "🇮🇳",
-  BR: "🇧🇷",
-  MX: "🇲🇽",
-  AR: "🇦🇷",
-  SA: "🇸🇦",
-};
-
 function ProductModal({
   service,
   onClose,
-  onSelect,
+  onPurchase,
 }) {
   const [products, setProducts] = useState([]);
+  const [search, setSearch] = useState("");
+
   const [loading, setLoading] = useState(true);
+  const [buying, setBuying] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    let mounted = true;
+    if (!service) return;
 
-    async function loadProducts() {
-      setLoading(true);
-      setError("");
+    let active = true;
 
+    const loadProducts = async () => {
       try {
+        setLoading(true);
+        setError("");
+
         const response = await fetch(
           `${API_BASE}/service-products?serviceId=${service.service_id}`
         );
 
         const data = await response.json();
 
-        if (!response.ok || !data.success) {
+        if (!response.ok || data.success === false) {
           throw new Error(
-            data.message || "Gagal mengambil produk."
+            data.message || "Produk gagal dimuat."
           );
         }
 
-        if (mounted) {
-          setProducts(
-            Array.isArray(data.items) ? data.items : []
-          );
+        if (active) {
+          setProducts(data.items || data.products || []);
         }
       } catch (err) {
-        if (mounted) {
+        if (active) {
           setError(
-            err.message || "Gagal mengambil data."
+            err.message || "Produk gagal dimuat."
           );
         }
       } finally {
-        if (mounted) setLoading(false);
+        if (active) setLoading(false);
       }
-    }
+    };
 
     loadProducts();
 
     return () => {
-      mounted = false;
+      active = false;
     };
-  }, [service.service_id]);
+  }, [service]);
 
-  const grouped = useMemo(() => {
-    const map = new Map();
+  const filteredProducts = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
 
-    products.forEach((item) => {
-      const key = `${item.country_id}-${item.country_code}`;
+    if (!keyword) return products;
 
-      if (!map.has(key)) {
-        map.set(key, {
-          country_id: item.country_id,
-          country_code: item.country_code,
-          country_name: item.country_name,
-          items: [],
-        });
+    return products.filter((item) => {
+      return [
+        item.country,
+        item.country_name,
+        item.package_label,
+        item.package,
+        item.offer_key,
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(keyword);
+    });
+  }, [products, search]);
+
+  const handlePurchase = async (product) => {
+    try {
+      setBuying(true);
+      setError("");
+
+      /*
+        API SERVER YANG DIPANGGIL:
+
+        POST /api/nomera/create-order
+
+        {
+          serviceId,
+          offerKey
+        }
+
+        API key Nomera TIDAK diletakkan di browser.
+      */
+
+      const response = await fetch(
+        `${API_BASE}/create-order`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            serviceId: service.service_id,
+            offerKey: product.offer_key,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        throw new Error(
+          data.message || "Pembelian gagal."
+        );
       }
 
-      map.get(key).items.push(item);
-    });
-
-    return Array.from(map.values());
-  }, [products]);
+      onPurchase(data, product);
+    } catch (err) {
+      setError(
+        err.message ||
+          "Pembelian gagal. Silakan coba lagi."
+      );
+    } finally {
+      setBuying(false);
+    }
+  };
 
   return (
-    <div
-      className="modal-backdrop-new"
-      onMouseDown={onClose}
-    >
-      <div
-        className="product-modal-new"
-        onMouseDown={(e) => e.stopPropagation()}
-      >
-        <div className="modal-header-new">
-          <div className="modal-service-title">
+    <div className="modal-overlay">
+      <div className="product-modal">
+        <div className="modal-header">
+          <div className="modal-service">
             <ServiceLogo service={service} />
 
             <div>
-              <span>SELECT SERVICE</span>
-              <h2>{service.service_name}</h2>
-              <p>
-                Pilih negara dan paket nomor yang tersedia.
-              </p>
+              <strong>{service.service_name}</strong>
+              <span>Pilih negara dan paket</span>
             </div>
           </div>
 
           <button
-            className="modal-close-new"
+            className="close-button"
             onClick={onClose}
           >
-            <SvgIcon name="close" size={19} />
+            <Icon name="close" />
           </button>
         </div>
 
-        <div className="modal-body-new">
-          {loading && (
-            <div className="modal-loading-new">
-              <div className="spinner-new" />
-              <strong>Memuat katalog...</strong>
-              <span>Mengambil stok terbaru.</span>
+        <div className="modal-search">
+          <Icon name="search" />
+
+          <input
+            value={search}
+            onChange={(e) =>
+              setSearch(e.target.value)
+            }
+            placeholder="Cari negara atau paket..."
+          />
+        </div>
+
+        {loading && (
+          <div className="modal-loading">
+            Memuat produk...
+          </div>
+        )}
+
+        {error && (
+          <div className="modal-error">
+            {error}
+          </div>
+        )}
+
+        {!loading &&
+          !error &&
+          filteredProducts.length === 0 && (
+            <div className="modal-empty">
+              Produk tidak ditemukan.
             </div>
           )}
 
-          {!loading && error && (
-            <div className="modal-error-new">
-              <strong>Gagal memuat produk</strong>
-              <span>{error}</span>
-            </div>
-          )}
+        <div className="product-list">
+          {filteredProducts.map((product, index) => {
+            const available =
+              Number(product.available || 0);
 
-          {!loading &&
-            !error &&
-            grouped.length === 0 && (
-              <div className="modal-loading-new">
-                <strong>Produk belum tersedia</strong>
-                <span>Coba layanan lainnya.</span>
-              </div>
-            )}
+            const active =
+              product.active !== false &&
+              available > 0;
 
-          {!loading &&
-            !error &&
-            grouped.map((country) => (
+            return (
               <div
-                className="country-group-new"
-                key={`${country.country_id}-${country.country_code}`}
+                className="product-row"
+                key={
+                  product.offer_key ||
+                  `${product.country}-${index}`
+                }
               >
-                <div className="country-header-new">
-                  <div className="country-identity">
-                    <div className="country-flag-new">
-                      {flags[country.country_code] || "🌐"}
-                    </div>
+                <div className="product-main">
+                  <strong>
+                    {product.country_name ||
+                      product.country ||
+                      "Negara"}
+                  </strong>
 
-                    <div>
-                      <strong>
-                        {country.country_name}
-                      </strong>
-
-                      <span>
-                        {country.country_code}
-                      </span>
-                    </div>
-                  </div>
-
-                  <span className="country-count-new">
-                    {country.items.length} paket
+                  <span>
+                    {product.package_label ||
+                      product.package ||
+                      "Paket"}
                   </span>
                 </div>
 
-                <div className="package-list-new">
-                  {country.items.map((item) => {
-                    const available =
-                      Number(item.available || 0);
-
-                    const disabled =
-                      !item.active || available <= 0;
-
-                    return (
-                      <button
-                        className="package-card-new"
-                        key={item.offer_key}
-                        disabled={disabled}
-                        onClick={() =>
-                          onSelect(item, service)
-                        }
-                      >
-                        <div className="package-left-new">
-                          <span className="package-name-new">
-                            {item.package_label}
-                          </span>
-
-                          <span className="package-stock-new">
-                            {available > 0
-                              ? `${available.toLocaleString(
-                                  "id-ID"
-                                )} tersedia`
-                              : "Stok habis"}
-                          </span>
-                        </div>
-
-                        <div className="package-right-new">
-                          <strong>
-                            {formatRupiah(item.price)}
-                          </strong>
-
-                          <span>
-                            <SvgIcon
-                              name="arrow"
-                              size={14}
-                            />
-                          </span>
-                        </div>
-                      </button>
-                    );
-                  })}
+                <div className="product-stock">
+                  {available.toLocaleString("id-ID")}
+                  {" "}tersedia
                 </div>
+
+                <div className="product-price">
+                  {formatRupiah(product.price)}
+                </div>
+
+                <button
+                  className="buy-button"
+                  disabled={!active || buying}
+                  onClick={() =>
+                    handlePurchase(product)
+                  }
+                >
+                  {buying
+                    ? "..."
+                    : active
+                    ? "Beli"
+                    : "Habis"}
+                </button>
               </div>
-            ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -907,121 +704,76 @@ function ProductModal({
 function Sidebar({
   page,
   setPage,
-  user,
   balance,
-  logout,
+  user,
+  onLogout,
 }) {
   const menus = [
-    {
-      id: "home",
-      icon: "home",
-      label: "Beranda",
-    },
-    {
-      id: "numbers",
-      icon: "phone",
-      label: "Nomor",
-    },
-    {
-      id: "deposit",
-      icon: "wallet",
-      label: "Saldo",
-    },
-    {
-      id: "orders",
-      icon: "orders",
-      label: "Pesanan",
-    },
-    {
-      id: "help",
-      icon: "help",
-      label: "Bantuan",
-    },
+    ["home", "Beranda", "home"],
+    ["number", "Nomor", "numbers"],
+    ["wallet", "Saldo", "deposit"],
+    ["orders", "Pesanan", "orders"],
+    ["help", "Bantuan", "help"],
   ];
 
-  const initial =
-    (user?.displayName ||
-      user?.email ||
-      "U")
-      .slice(0, 1)
-      .toUpperCase();
-
   return (
-    <aside className="sidebar-new">
-      <div className="sidebar-top-new">
+    <aside className="sidebar">
+      <div className="sidebar-brand">
         <Logo />
       </div>
 
-      <div className="balance-widget">
-        <div className="balance-widget-top">
-          <span>SALDO AKUN</span>
-          <div>
-            <SvgIcon name="wallet" size={14} />
-          </div>
-        </div>
+      <div className="balance-box">
+        <span>Saldo kamu</span>
 
-        <strong>{formatRupiah(balance)}</strong>
-
-        <button
-          onClick={() => setPage("deposit")}
-        >
-          <SvgIcon name="plus" size={14} />
-          Tambah saldo
-        </button>
+        <strong>
+          {formatRupiah(balance)}
+        </strong>
       </div>
 
-      <div className="sidebar-section-label">
-        MENU
-      </div>
-
-      <nav className="sidebar-nav-new">
-        {menus.map((menu) => (
+      <nav className="sidebar-nav">
+        {menus.map(([icon, label, target]) => (
           <button
-            key={menu.id}
+            key={target}
             className={
-              page === menu.id
-                ? "nav-item-new active"
-                : "nav-item-new"
+              page === target
+                ? "nav-item active"
+                : "nav-item"
             }
-            onClick={() => setPage(menu.id)}
+            onClick={() => setPage(target)}
           >
-            <span className="nav-icon-new">
-              <SvgIcon
-                name={menu.icon}
-                size={18}
-              />
-            </span>
-
-            <span>{menu.label}</span>
-
-            {page === menu.id && (
-              <i className="nav-active-line" />
-            )}
+            <Icon name={icon} />
+            <span>{label}</span>
           </button>
         ))}
       </nav>
 
-      <div className="sidebar-bottom-new">
-        <div className="user-profile-new">
-          <div className="avatar-new">
-            {initial}
+      <div className="sidebar-bottom">
+        <div className="user-box">
+          <div className="user-avatar">
+            {(user?.name ||
+              user?.email ||
+              "U")
+              .charAt(0)
+              .toUpperCase()}
           </div>
 
-          <div>
+          <div className="user-data">
             <strong>
-              {user?.displayName || "Pengguna"}
+              {user?.name || "Pengguna"}
             </strong>
 
-            <span>{user?.email}</span>
+            <span>
+              {user?.email || ""}
+            </span>
           </div>
         </div>
 
         <button
-          className="logout-new"
-          onClick={logout}
+          className="logout-button"
+          onClick={onLogout}
         >
-          <SvgIcon name="logout" size={17} />
-          Keluar
+          <Icon name="logout" />
+          <span>Logout</span>
         </button>
       </div>
     </aside>
@@ -1032,41 +784,22 @@ function Sidebar({
    HEADER
 ========================================================= */
 
-function Header({
-  title,
-  balance,
-  setPage,
-  user,
-}) {
-  const initial =
-    (user?.displayName ||
-      user?.email ||
-      "U")
-      .slice(0, 1)
-      .toUpperCase();
-
+function Header({ title, balance }) {
   return (
-    <header className="topbar-new">
+    <header className="topbar">
       <div>
-        <span>WORKSPACE / SULFA</span>
+        <span className="topbar-label">
+          Sulfa Media Store
+        </span>
+
         <h1>{title}</h1>
       </div>
 
-      <div className="topbar-right-new">
-        <button
-          className="topbar-balance-new"
-          onClick={() => setPage("deposit")}
-        >
-          <span>Saldo</span>
-          <strong>{formatRupiah(balance)}</strong>
-          <i>
-            <SvgIcon name="plus" size={13} />
-          </i>
-        </button>
-
-        <div className="topbar-avatar-new">
-          {initial}
-        </div>
+      <div className="topbar-balance">
+        <span>Saldo</span>
+        <strong>
+          {formatRupiah(balance)}
+        </strong>
       </div>
     </header>
   );
@@ -1077,105 +810,92 @@ function Header({
 ========================================================= */
 
 function Home({
-  setPage,
   services,
-  onOpenService,
   balance,
+  setPage,
+  openService,
 }) {
   return (
-    <>
-      <section className="hero-new">
-        <div className="hero-grid-new" />
-
-        <div className="hero-content-new">
-          <div className="hero-label-new">
-            <span />
+    <div className="page">
+      <section className="hero">
+        <div className="hero-content">
+          <span className="hero-badge">
             SULFA MEDIA STORE
-          </div>
+          </span>
 
           <h2>
-            Your digital
+            Nomor virtual untuk
             <br />
-            <em>number hub.</em>
+            kebutuhan digital kamu.
           </h2>
 
           <p>
-            Pilih layanan, negara, dan paket nomor digital
-            yang tersedia dalam satu dashboard.
+            Pilih aplikasi, pilih negara,
+            lalu pilih nomor yang tersedia.
           </p>
 
-          <div className="hero-buttons-new">
-            <button
-              className="hero-primary-new"
-              onClick={() => setPage("numbers")}
-            >
-              Mulai beli
-              <SvgIcon name="arrow" size={16} />
-            </button>
-
-            <button
-              className="hero-secondary-new"
-              onClick={() => setPage("deposit")}
-            >
-              <SvgIcon name="wallet" size={16} />
-              Isi saldo
-            </button>
-          </div>
+          <button
+            className="primary-button"
+            onClick={() => setPage("numbers")}
+          >
+            Lihat Nomor
+            <Icon name="arrow" />
+          </button>
         </div>
 
-        <div className="hero-visual-new">
-          <div className="hero-orbit orbit-one" />
-          <div className="hero-orbit orbit-two" />
-
-          <div className="hero-floating-card card-one">
-            <span>AVAILABLE</span>
-            <strong>ONLINE</strong>
-            <i />
-          </div>
-
-          <div className="hero-main-card">
-            <div className="hero-main-icon">
-              <Logo compact />
-            </div>
-
-            <span>ACCOUNT BALANCE</span>
-
-            <strong>
-              {formatRupiah(balance)}
-            </strong>
-
-            <div className="hero-card-line">
-              <i />
-              <span>Active account</span>
-            </div>
-          </div>
+        <div className="hero-decoration">
+          <div />
+          <div />
+          <div />
         </div>
       </section>
 
-      <div className="section-heading-new">
-        <div>
-          <span>PLATFORM</span>
-          <h2>Layanan pilihan</h2>
+      <section className="section">
+        <div className="section-heading">
+          <div>
+            <span>CATALOG</span>
+            <h2>Platform populer</h2>
+          </div>
+
+          <button
+            className="text-button"
+            onClick={() => setPage("numbers")}
+          >
+            Lihat semua
+            <Icon name="arrow" />
+          </button>
         </div>
 
-        <button
-          onClick={() => setPage("numbers")}
-        >
-          Semua layanan
-          <SvgIcon name="arrow" size={14} />
-        </button>
-      </div>
+        <div className="service-grid">
+          {services.slice(0, 8).map((service) => (
+            <ServiceCard
+              key={service.service_id}
+              service={service}
+              onClick={openService}
+            />
+          ))}
+        </div>
+      </section>
 
-      <div className="service-grid-new">
-        {services.slice(0, 8).map((service) => (
-          <ServiceCard
-            key={service.service_id}
-            service={service}
-            onOpen={onOpenService}
-          />
-        ))}
-      </div>
-    </>
+      <section className="stats-grid">
+        <div className="stat-card">
+          <span>Saldo</span>
+          <strong>{formatRupiah(balance)}</strong>
+        </div>
+
+        <div className="stat-card">
+          <span>Platform</span>
+          <strong>{services.length}</strong>
+        </div>
+
+        <div className="stat-card">
+          <span>Status</span>
+          <strong className="status-online">
+            Online
+          </strong>
+        </div>
+      </section>
+    </div>
   );
 }
 
@@ -1183,34 +903,62 @@ function Home({
    NUMBERS
 ========================================================= */
 
-function Numbers({
-  services,
-  onOpenService,
-}) {
-  return (
-    <>
-      <div className="page-intro-new">
-        <span>CATALOG / SERVICES</span>
+function Numbers({ services, openService }) {
+  const [search, setSearch] = useState("");
 
-        <div>
-          <h2>Nomor digital</h2>
-          <p>
-            Pilih layanan untuk melihat negara,
-            stok, dan paket yang tersedia.
-          </p>
-        </div>
+  const filtered = useMemo(() => {
+    const keyword = search.trim().toLowerCase();
+
+    if (!keyword) return services;
+
+    return services.filter((service) =>
+      service.service_name
+        .toLowerCase()
+        .includes(keyword)
+    );
+  }, [services, search]);
+
+  return (
+    <div className="page">
+      <div className="page-intro">
+        <span>CATALOG</span>
+
+        <h2>Pilih aplikasi</h2>
+
+        <p>
+          Pilih aplikasi untuk melihat
+          negara dan paket nomor yang tersedia.
+        </p>
       </div>
 
-      <div className="service-grid-new catalog-grid-new">
-        {services.map((service) => (
+      <div className="search-box">
+        <Icon name="search" />
+
+        <input
+          value={search}
+          onChange={(e) =>
+            setSearch(e.target.value)
+          }
+          placeholder="Cari aplikasi..."
+        />
+      </div>
+
+      <div className="service-grid">
+        {filtered.map((service) => (
           <ServiceCard
             key={service.service_id}
             service={service}
-            onOpen={onOpenService}
+            onClick={openService}
           />
         ))}
       </div>
-    </>
+
+      {filtered.length === 0 && (
+        <div className="empty-box">
+          Aplikasi tidak ditemukan.
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -1219,74 +967,258 @@ function Numbers({
 ========================================================= */
 
 function Deposit({ balance }) {
-  return (
-    <div className="content-narrow-new">
-      <div className="page-intro-new">
-        <span>BALANCE / DEPOSIT</span>
+  const [amount, setAmount] = useState("");
 
-        <div>
-          <h2>Tambah saldo</h2>
-          <p>
-            Saldo digunakan untuk membeli nomor
-            digital dari katalog.
-          </p>
-        </div>
+  const [payment, setPayment] = useState(null);
+
+  const [loading, setLoading] = useState(false);
+  const [checking, setChecking] = useState(false);
+
+  const [error, setError] = useState("");
+
+  const createDeposit = async () => {
+    setError("");
+
+    const nominal = Number(amount);
+
+    if (!nominal || nominal < 5000) {
+      setError(
+        "Minimum deposit adalah Rp5.000."
+      );
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await fetch(
+        "/api/deposit/create",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            amount: nominal,
+          }),
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok || data.success === false) {
+        throw new Error(
+          data.message ||
+            "Deposit gagal dibuat."
+        );
+      }
+
+      setPayment(data);
+    } catch (err) {
+      setError(
+        err.message ||
+          "Deposit gagal dibuat."
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const checkPayment = async () => {
+    if (!payment?.depositId) return;
+
+    try {
+      setChecking(true);
+      setError("");
+
+      const response = await fetch(
+        `/api/deposit/status?depositId=${encodeURIComponent(
+          payment.depositId
+        )}`
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.message ||
+            "Status pembayaran gagal dicek."
+        );
+      }
+
+      if (
+        data.status === "PAID" ||
+        data.status === "SUCCESS" ||
+        data.status === "SETTLED"
+      ) {
+        setPayment((old) => ({
+          ...old,
+          paid: true,
+          status: data.status,
+        }));
+      } else {
+        setPayment((old) => ({
+          ...old,
+          status: data.status,
+        }));
+      }
+    } catch (err) {
+      setError(
+        err.message ||
+          "Gagal mengecek pembayaran."
+      );
+    } finally {
+      setChecking(false);
+    }
+  };
+
+  return (
+    <div className="page">
+      <div className="page-intro">
+        <span>WALLET</span>
+
+        <h2>Isi saldo</h2>
+
+        <p>
+          Tambahkan saldo untuk membeli
+          nomor yang tersedia.
+        </p>
       </div>
 
-      <div className="deposit-layout-new">
-        <div className="balance-card-new">
-          <div className="balance-card-icon">
-            <SvgIcon name="wallet" size={21} />
+      <div className="deposit-layout">
+        <div className="deposit-card">
+          <div className="deposit-balance">
+            <span>Saldo saat ini</span>
+            <strong>
+              {formatRupiah(balance)}
+            </strong>
           </div>
 
-          <span>SALDO SEKARANG</span>
+          <label>Nominal deposit</label>
 
-          <strong>{formatRupiah(balance)}</strong>
+          <div className="amount-input">
+            <span>Rp</span>
 
-          <div className="balance-card-status">
-            <i />
-            Account balance
-          </div>
-        </div>
-
-        <div className="payment-card-new">
-          <div className="payment-card-head">
-            <div className="qris-icon-new">
-              QR
-            </div>
-
-            <div>
-              <span>PAYMENT METHOD</span>
-              <h3>QRIS</h3>
-            </div>
+            <input
+              type="number"
+              min="5000"
+              step="1000"
+              placeholder="5000"
+              value={amount}
+              onChange={(e) =>
+                setAmount(e.target.value)
+              }
+            />
           </div>
 
-          <p>
-            Pembayaran QRIS akan ditampilkan
-            ketika proses deposit diaktifkan.
-          </p>
-
-          <div className="payment-info-new">
-            <div>
-              <span>MINIMUM</span>
-              <strong>Rp5.000</strong>
-            </div>
-
-            <div>
-              <span>STATUS</span>
-              <strong className="coming">
-                READY
-              </strong>
-            </div>
+          <div className="quick-amounts">
+            {[5000, 10000, 20000, 50000].map(
+              (value) => (
+                <button
+                  key={value}
+                  onClick={() =>
+                    setAmount(String(value))
+                  }
+                >
+                  {formatRupiah(value)}
+                </button>
+              )
+            )}
           </div>
+
+          {error && (
+            <div className="form-error">
+              {error}
+            </div>
+          )}
 
           <button
-            className="deposit-button-disabled"
-            disabled
+            className="primary-button full"
+            onClick={createDeposit}
+            disabled={loading}
           >
-            Payment gateway segera tersedia
+            {loading
+              ? "Membuat pembayaran..."
+              : "Buat Pembayaran QRIS"}
           </button>
         </div>
+
+        {payment && (
+          <div className="qris-card">
+            <div className="qris-header">
+              <div>
+                <span>PEMBAYARAN</span>
+                <h3>Scan QRIS</h3>
+              </div>
+
+              <span
+                className={
+                  payment.paid
+                    ? "payment-status success"
+                    : "payment-status"
+                }
+              >
+                {payment.paid
+                  ? "Berhasil"
+                  : payment.status ||
+                    "Menunggu"}
+              </span>
+            </div>
+
+            {payment.qrImage ||
+            payment.qrisImage ||
+            payment.qrUrl ? (
+              <div className="qris-image">
+                <img
+                  src={
+                    payment.qrImage ||
+                    payment.qrisImage ||
+                    payment.qrUrl
+                  }
+                  alt="QRIS pembayaran"
+                />
+              </div>
+            ) : (
+              <div className="qris-placeholder">
+                QRIS belum tersedia dari
+                payment gateway.
+              </div>
+            )}
+
+            <div className="qris-total">
+              <span>Total</span>
+
+              <strong>
+                {formatRupiah(
+                  payment.amount || amount
+                )}
+              </strong>
+            </div>
+
+            {!payment.paid && (
+              <button
+                className="secondary-button full"
+                onClick={checkPayment}
+                disabled={checking}
+              >
+                <Icon name="refresh" />
+
+                {checking
+                  ? "Mengecek..."
+                  : "Cek Status Pembayaran"}
+              </button>
+            )}
+
+            {payment.paid && (
+              <div className="payment-success">
+                Pembayaran berhasil.
+                Saldo akan diperbarui
+                setelah server memverifikasi
+                transaksi.
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -1297,33 +1229,110 @@ function Deposit({ balance }) {
 ========================================================= */
 
 function Orders() {
+  const [orders, setOrders] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let active = true;
+
+    const loadOrders = async () => {
+      try {
+        setLoading(true);
+
+        const response = await fetch(
+          `${API_BASE}/my-orders`
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error();
+        }
+
+        if (active) {
+          setOrders(
+            data.orders ||
+              data.items ||
+              []
+          );
+        }
+      } catch {
+        if (active) {
+          setOrders([]);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    loadOrders();
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
-    <div className="content-narrow-new">
-      <div className="page-intro-new">
-        <span>ACTIVITY / ORDERS</span>
+    <div className="page">
+      <div className="page-intro">
+        <span>ORDERS</span>
 
-        <div>
-          <h2>Pesanan</h2>
-          <p>
-            Riwayat pembelian nomor digital kamu.
-          </p>
-        </div>
-      </div>
-
-      <div className="empty-new">
-        <div>
-          <SvgIcon name="orders" size={24} />
-        </div>
-
-        <span>NO ORDERS YET</span>
-
-        <h3>Belum ada pesanan</h3>
+        <h2>Pesanan saya</h2>
 
         <p>
-          Pesanan yang berhasil dibuat akan
-          tampil di sini.
+          Lihat status pembelian nomor kamu.
         </p>
       </div>
+
+      {loading ? (
+        <div className="empty-box">
+          Memuat pesanan...
+        </div>
+      ) : orders.length === 0 ? (
+        <div className="empty-box">
+          Belum ada pesanan.
+        </div>
+      ) : (
+        <div className="orders-list">
+          {orders.map((order, index) => (
+            <div
+              className="order-card"
+              key={
+                order.order_id ||
+                order.id ||
+                index
+              }
+            >
+              <div>
+                <strong>
+                  {order.service_name ||
+                    order.service ||
+                    "Pesanan"}
+                </strong>
+
+                <span>
+                  {order.phone ||
+                    order.number ||
+                    "Nomor diproses"}
+                </span>
+              </div>
+
+              <div className="order-right">
+                <strong>
+                  {order.status ||
+                    "PROCESSING"}
+                </strong>
+
+                {order.price && (
+                  <span>
+                    {formatRupiah(order.price)}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -1333,48 +1342,47 @@ function Orders() {
 ========================================================= */
 
 function Help() {
-  const items = [
-    {
-      number: "01",
-      title: "Tambah saldo",
-      text: "Isi saldo melalui menu deposit ketika payment gateway tersedia.",
-    },
-    {
-      number: "02",
-      title: "Pilih layanan",
-      text: "Pilih platform lalu tentukan negara dan paket nomor.",
-    },
-    {
-      number: "03",
-      title: "Pantau pesanan",
-      text: "Status dan riwayat transaksi akan ditampilkan pada halaman pesanan.",
-    },
-  ];
-
   return (
-    <div className="content-narrow-new">
-      <div className="page-intro-new">
-        <span>SUPPORT / HELP</span>
+    <div className="page">
+      <div className="page-intro">
+        <span>SUPPORT</span>
 
-        <div>
-          <h2>Pusat bantuan</h2>
-          <p>
-            Panduan singkat menggunakan platform.
-          </p>
-        </div>
+        <h2>Bantuan</h2>
+
+        <p>
+          Panduan singkat penggunaan Sulfa
+          Media Store.
+        </p>
       </div>
 
-      <div className="help-grid-new">
-        {items.map((item) => (
-          <div
-            className="help-card-new"
-            key={item.number}
-          >
-            <span>{item.number}</span>
-            <h3>{item.title}</h3>
-            <p>{item.text}</p>
-          </div>
-        ))}
+      <div className="help-grid">
+        <div className="help-card">
+          <h3>Bagaimana membeli nomor?</h3>
+
+          <p>
+            Buka menu Nomor, pilih aplikasi,
+            negara, paket, kemudian tekan Beli.
+          </p>
+        </div>
+
+        <div className="help-card">
+          <h3>Bagaimana isi saldo?</h3>
+
+          <p>
+            Buka menu Saldo, masukkan minimal
+            Rp5.000, kemudian buat pembayaran
+            QRIS.
+          </p>
+        </div>
+
+        <div className="help-card">
+          <h3>Bagaimana melihat pesanan?</h3>
+
+          <p>
+            Semua transaksi yang sudah dibuat
+            dapat dilihat melalui menu Pesanan.
+          </p>
+        </div>
       </div>
     </div>
   );
@@ -1384,207 +1392,263 @@ function Help() {
    APP
 ========================================================= */
 
-function App() {
+export default function App() {
   const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  const [profile, setProfile] = useState(null);
 
-  const [page, setPage] = useState("home");
-  const [balance, setBalance] = useState(0);
-
-  const [services, setServices] = useState([]);
-  const [servicesLoading, setServicesLoading] =
+  const [authLoading, setAuthLoading] =
     useState(true);
-  const [servicesError, setServicesError] =
+
+  const [authPage, setAuthPage] =
+    useState("login");
+
+  const [page, setPage] =
+    useState("home");
+
+  const [services, setServices] =
+    useState([]);
+
+  const [balance, setBalance] =
+    useState(0);
+
+  const [catalogLoading, setCatalogLoading] =
+    useState(true);
+
+  const [catalogError, setCatalogError] =
     useState("");
 
   const [selectedService, setSelectedService] =
     useState(null);
 
+  /* AUTH */
+
   useEffect(() => {
-    return onAuthStateChanged(
-      auth,
-      (currentUser) => {
-        setUser(currentUser);
-        setAuthLoading(false);
-      }
-    );
+    const unsubscribe =
+      onAuthStateChanged(
+        auth,
+        (firebaseUser) => {
+          setUser(firebaseUser);
+          setAuthLoading(false);
+        }
+      );
+
+    return unsubscribe;
   }, []);
+
+  /* FIRESTORE USER */
 
   useEffect(() => {
     if (!user) {
+      setProfile(null);
       setBalance(0);
       return;
     }
 
-    const ref = doc(db, "users", user.uid);
+    const userRef = doc(
+      db,
+      "users",
+      user.uid
+    );
 
-    return onSnapshot(
-      ref,
-      (snap) => {
-        if (snap.exists()) {
+    const unsubscribe = onSnapshot(
+      userRef,
+      (snapshot) => {
+        if (snapshot.exists()) {
+          const data = snapshot.data();
+
+          setProfile(data);
           setBalance(
-            Number(snap.data().balance || 0)
+            Number(data.balance || 0)
           );
-        } else {
-          setBalance(0);
         }
-      },
-      () => {
-        setBalance(0);
       }
     );
+
+    return unsubscribe;
   }, [user]);
+
+  /* CATALOG */
 
   useEffect(() => {
     if (!user) return;
 
-    let mounted = true;
+    let active = true;
 
-    async function loadServices() {
-      setServicesLoading(true);
-      setServicesError("");
-
+    const loadCatalog = async () => {
       try {
+        setCatalogLoading(true);
+        setCatalogError("");
+
         const response = await fetch(
           `${API_BASE}/catalog`
         );
 
         const data = await response.json();
 
-        if (!response.ok || !data.success) {
+        if (!response.ok || data.success === false) {
           throw new Error(
             data.message ||
-              "Gagal mengambil layanan."
+              "Katalog gagal dimuat."
           );
         }
 
-        if (mounted) {
+        if (active) {
           setServices(
-            Array.isArray(data.services)
-              ? data.services
-              : []
+            data.services || []
           );
         }
       } catch (err) {
-        if (mounted) {
-          setServicesError(
+        if (active) {
+          setCatalogError(
             err.message ||
-              "Gagal mengambil daftar layanan."
+              "Katalog gagal dimuat."
           );
         }
       } finally {
-        if (mounted) {
-          setServicesLoading(false);
+        if (active) {
+          setCatalogLoading(false);
         }
       }
-    }
+    };
 
-    loadServices();
+    loadCatalog();
 
     return () => {
-      mounted = false;
+      active = false;
     };
   }, [user]);
 
-  async function logout() {
+  /* LOGOUT */
+
+  const handleLogout = async () => {
     try {
       await signOut(auth);
       setPage("home");
-      setSelectedService(null);
-    } catch (err) {
-      console.error("Logout error:", err);
+      setProfile(null);
+      setBalance(0);
+    } catch {
+      alert("Logout gagal.");
     }
-  }
+  };
+
+  /* PURCHASE SUCCESS */
+
+  const handlePurchase = (
+    data,
+    product
+  ) => {
+    setSelectedService(null);
+
+    setPage("orders");
+
+    console.log(
+      "Order berhasil:",
+      data,
+      product
+    );
+  };
 
   if (authLoading) {
-    return <LoadingScreen />;
+    return (
+      <div className="screen-loading">
+        <Logo />
+
+        <span>
+          Memuat Sulfa Media Store...
+        </span>
+      </div>
+    );
   }
 
   if (!user) {
-    return <Auth />;
+    if (authPage === "register") {
+      return (
+        <Register
+          onLogin={() =>
+            setAuthPage("login")
+          }
+        />
+      );
+    }
+
+    return (
+      <Login
+        onRegister={() =>
+          setAuthPage("register")
+        }
+      />
+    );
   }
 
-  const titles = {
+  const pageTitles = {
     home: "Beranda",
-    numbers: "Nomor digital",
-    deposit: "Tambah saldo",
+    numbers: "Nomor",
+    deposit: "Saldo",
     orders: "Pesanan",
     help: "Bantuan",
   };
 
   return (
-    <div className="app-new">
+    <div className="app">
       <Sidebar
         page={page}
         setPage={setPage}
-        user={user}
         balance={balance}
-        logout={logout}
+        user={{
+          ...profile,
+          email: user.email,
+        }}
+        onLogout={handleLogout}
       />
 
-      <main className="main-new">
+      <main className="main">
         <Header
-          title={titles[page]}
+          title={pageTitles[page]}
           balance={balance}
-          setPage={setPage}
-          user={user}
         />
 
-        <div className="page-new">
-          {page === "home" && (
-            servicesLoading ? (
-              <div className="page-loading-new">
-                <div className="spinner-new" />
-                <span>
-                  Memuat layanan...
-                </span>
-              </div>
-            ) : servicesError ? (
-              <div className="error-new">
-                {servicesError}
-              </div>
-            ) : (
-              <Home
-                setPage={setPage}
-                services={services}
-                onOpenService={
-                  setSelectedService
-                }
-                balance={balance}
-              />
-            )
-          )}
+        {catalogError && (
+          <div className="global-error">
+            {catalogError}
+          </div>
+        )}
 
-          {page === "numbers" && (
-            servicesLoading ? (
-              <div className="page-loading-new">
-                <div className="spinner-new" />
-                <span>
-                  Memuat katalog...
-                </span>
-              </div>
-            ) : servicesError ? (
-              <div className="error-new">
-                {servicesError}
-              </div>
-            ) : (
+        {catalogLoading &&
+        page !== "deposit" &&
+        page !== "orders" &&
+        page !== "help" ? (
+          <div className="page">
+            <div className="empty-box">
+              Memuat katalog...
+            </div>
+          </div>
+        ) : (
+          <>
+            {page === "home" && (
+              <Home
+                services={services}
+                balance={balance}
+                setPage={setPage}
+                openService={setSelectedService}
+              />
+            )}
+
+            {page === "numbers" && (
               <Numbers
                 services={services}
-                onOpenService={
-                  setSelectedService
-                }
+                openService={setSelectedService}
               />
-            )
-          )}
+            )}
 
-          {page === "deposit" && (
-            <Deposit balance={balance} />
-          )}
+            {page === "deposit" && (
+              <Deposit balance={balance} />
+            )}
 
-          {page === "orders" && <Orders />}
+            {page === "orders" && <Orders />}
 
-          {page === "help" && <Help />}
-        </div>
+            {page === "help" && <Help />}
+          </>
+        )}
       </main>
 
       {selectedService && (
@@ -1593,18 +1657,9 @@ function App() {
           onClose={() =>
             setSelectedService(null)
           }
-          onSelect={(product) => {
-            console.log(
-              "Produk dipilih:",
-              product
-            );
-
-            setSelectedService(null);
-          }}
+          onPurchase={handlePurchase}
         />
       )}
     </div>
   );
 }
-
-export default App;
