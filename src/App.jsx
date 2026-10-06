@@ -16,9 +16,6 @@ const Icon = ({ n }) => (
       clock: "◷",
       info: "i",
       logout: "↪",
-      arrow: "→",
-      plus: "+",
-      user: "○",
     })[n] || "•"}
   </span>
 );
@@ -68,8 +65,8 @@ function Auth() {
         </h1>
 
         <p>
-          Kelola saldo, nomor virtual, dan pesanan dari satu
-          panel.
+          Kelola saldo, nomor virtual, dan pesanan dari
+          satu panel.
         </p>
 
         <form onSubmit={submit}>
@@ -116,7 +113,9 @@ function Auth() {
         <button
           className="link"
           onClick={() =>
-            setMode(mode === "login" ? "register" : "login")
+            setMode(
+              mode === "login" ? "register" : "login"
+            )
           }
         >
           {mode === "login"
@@ -129,54 +128,39 @@ function Auth() {
 }
 
 function Product({ p, onClick }) {
-  const stock = Number(
-    p.stock ??
-    p.availableStock ??
-    p.quantity ??
-    0
-  );
-
   const name =
+    p.service_name ||
     p.name ||
     p.serviceName ||
-    p.service ||
     p.title ||
-    "Nomor Virtual";
+    "Service";
 
-  const country =
-    p.country ||
-    p.countryName ||
-    p.countryCode ||
-    "Indonesia";
-
-  const price =
-    p.price ??
-    p.sellPrice ??
-    p.amount ??
-    p.finalPrice ??
-    0;
-
-  const description =
-    p.description ||
-    "Nomor virtual dari katalog Nomera.";
+  const active = p.active !== false;
 
   return (
     <article className="product">
       <div className="row">
-        <span className={stock ? "ready" : "empty"}>
+        <span className={active ? "ready" : "empty"}>
           <i />
-          {stock ? "READY" : "EMPTY"}
+          {active ? "READY" : "EMPTY"}
         </span>
 
-        <small>{country}</small>
+        <small>
+          Service ID: {p.service_id ?? "-"}
+        </small>
       </div>
 
       <h3>{name}</h3>
 
-      <p>{description}</p>
+      <p>
+        {p.service_code ||
+          "Layanan nomor virtual dari Nomera."}
+      </p>
 
       <div className="row">
-        <strong>{money(price)}</strong>
+        <strong>
+          Pilih layanan
+        </strong>
 
         <button onClick={onClick}>
           Pilih →
@@ -208,39 +192,43 @@ export default function App() {
     setCatalogError("");
 
     try {
-      const response = await fetch("/api/nomera/catalog", {
-        method: "GET",
-        headers: {
-          Accept: "application/json",
-        },
-      });
+      const response = await fetch(
+        "/api/nomera/catalog",
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        }
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
         throw new Error(
-          data?.error || "Gagal mengambil katalog Nomera."
+          data?.error ||
+            "Gagal mengambil katalog Nomera."
         );
       }
 
-      const items =
-        Array.isArray(data)
-          ? data
-          : Array.isArray(data?.data)
-          ? data.data
-          : Array.isArray(data?.catalog)
-          ? data.catalog
-          : Array.isArray(data?.services)
-          ? data.services
-          : Array.isArray(data?.items)
-          ? data.items
-          : [];
+      /*
+       * Respons Nomera:
+       * {
+       *   success: true,
+       *   products: [],
+       *   services: [...]
+       * }
+       */
+
+      const items = Array.isArray(data?.services)
+        ? data.services
+        : [];
 
       setProducts(items);
 
       if (!items.length) {
         setCatalogError(
-          "Katalog Nomera berhasil dipanggil, tetapi tidak ada produk yang dikembalikan."
+          "Tidak ada service yang tersedia dari Nomera."
         );
       }
     } catch (error) {
@@ -249,7 +237,8 @@ export default function App() {
       setProducts([]);
 
       setCatalogError(
-        error.message || "Katalog Nomera gagal dimuat."
+        error.message ||
+          "Katalog Nomera gagal dimuat."
       );
     } finally {
       setCatalogLoading(false);
@@ -285,18 +274,7 @@ export default function App() {
   }, []);
 
   const stock = useMemo(
-    () =>
-      products.reduce(
-        (total, p) =>
-          total +
-          Number(
-            p.stock ??
-            p.availableStock ??
-            p.quantity ??
-            0
-          ),
-        0
-      ),
+    () => products.length,
     [products]
   );
 
@@ -450,14 +428,14 @@ export default function App() {
               </div>
 
               <div>
-                Produk aktif
+                Layanan
                 <strong>
                   {products.length}
                 </strong>
               </div>
 
               <div>
-                Stok
+                Tersedia
                 <strong>{stock}</strong>
               </div>
 
@@ -469,7 +447,7 @@ export default function App() {
               </div>
             </div>
 
-            <h3>Nomor populer</h3>
+            <h3>Layanan tersedia</h3>
 
             {catalogError && (
               <div className="alert">
@@ -490,10 +468,7 @@ export default function App() {
                   .map((p, index) => (
                     <Product
                       key={
-                        p.id ||
-                        p.serviceId ||
-                        p.offerKey ||
-                        index
+                        p.service_id || index
                       }
                       p={p}
                       onClick={() =>
@@ -505,8 +480,7 @@ export default function App() {
               {!catalogLoading &&
                 !products.length && (
                   <div className="emptybox">
-                    Katalog Nomera belum memiliki
-                    produk yang dapat ditampilkan.
+                    Belum ada layanan tersedia.
                   </div>
                 )}
             </div>
@@ -521,11 +495,11 @@ export default function App() {
               </span>
 
               <h1>
-                Pilih nomor yang kamu butuhkan.
+                Pilih layanan yang kamu butuhkan.
               </h1>
 
               <p>
-                Data katalog diambil langsung dari
+                Data layanan diambil langsung dari
                 API Nomera.
               </p>
             </div>
@@ -559,10 +533,7 @@ export default function App() {
                 products.map((p, index) => (
                   <Product
                     key={
-                      p.id ||
-                      p.serviceId ||
-                      p.offerKey ||
-                      index
+                      p.service_id || index
                     }
                     p={p}
                     onClick={() =>
@@ -574,8 +545,7 @@ export default function App() {
               {!catalogLoading &&
                 !products.length && (
                   <div className="emptybox">
-                    Tidak ada produk dari katalog
-                    Nomera.
+                    Tidak ada layanan dari Nomera.
                   </div>
                 )}
             </div>
@@ -774,7 +744,7 @@ export default function App() {
               [
                 "01",
                 "Pilih layanan",
-                "Service, negara, dan offer dari katalog API.",
+                "Pilih service dari katalog API.",
               ],
               [
                 "02",
@@ -784,12 +754,12 @@ export default function App() {
               [
                 "03",
                 "Buat order",
-                "Gunakan idempotencyKey yang sama saat retry.",
+                "Order dibuat melalui backend.",
               ],
               [
                 "04",
                 "Tunggu status",
-                "Pesanan diproses melalui status dari provider.",
+                "Pesanan diproses oleh provider.",
               ],
               [
                 "05",
@@ -836,39 +806,26 @@ export default function App() {
             </button>
 
             <span className="eyebrow">
-              PRODUCT DETAIL
+              SERVICE DETAIL
             </span>
 
             <h2>
-              {selected.name ||
-                selected.serviceName ||
-                selected.service ||
-                selected.title ||
-                "Nomor Virtual"}
+              {selected.service_name ||
+                selected.name ||
+                "Service"}
             </h2>
 
             <p>
-              {selected.description ||
-                "Nomor virtual dari katalog Nomera."}
+              Code:{" "}
+              <b>
+                {selected.service_code || "-"}
+              </b>
             </p>
 
-            <strong className="price">
-              {money(
-                selected.price ??
-                  selected.sellPrice ??
-                  selected.amount ??
-                  selected.finalPrice ??
-                  0
-              )}
-            </strong>
-
             <p>
-              Negara:{" "}
+              Service ID:{" "}
               <b>
-                {selected.country ||
-                  selected.countryName ||
-                  selected.countryCode ||
-                  "Indonesia"}
+                {selected.service_id || "-"}
               </b>
             </p>
 
@@ -879,7 +836,7 @@ export default function App() {
                 setPage("deposit");
               }}
             >
-              Isi saldo untuk membeli →
+              Isi saldo untuk melanjutkan →
             </button>
           </div>
         </div>
